@@ -1,0 +1,27 @@
+#!/bin/bash
+CMD="$@"
+if [ -z "$CMD" ]; then
+    CMD="-h"
+fi
+
+GUESTFISH_SHARED_DIR="$(pwd)/shared"
+if [ ! -e "${GUESTFISH_SHARED_DIR}" ]; then
+  mkdir "${GUESTFISH_SHARED_DIR}"
+fi
+
+GUESTFISH_IMAGE="$(find . -iname "*.img" | head -n 1)"
+
+2>&1 docker run \
+  --env LIBGUESTFS_DEBUG=0 \
+  --env LIBGUESTFS_TRACE=0 \
+  --rm \
+  -it \
+  --mount type=bind,source="${GUESTFISH_SHARED_DIR}",target=/shared \
+  --mount type=bind,source="$(pwd)/${GUESTFISH_IMAGE}",target=/images/disk.img \
+  --entrypoint /usr/bin/guestfish \
+  bkahlert/libguestfs \
+  $CMD
+
+if [ -z "$(ls -A "${GUESTFISH_SHARED_DIR}")" ]; then
+   rmdir "${GUESTFISH_SHARED_DIR}"
+fi

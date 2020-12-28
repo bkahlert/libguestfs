@@ -1,0 +1,13 @@
+#!/bin/bash
+CMD="$@"
+if [ -z "$CMD" ]; then
+    CMD="-h"
+fi
+
+GUESTFISH_IMAGE="$(find . -iname "*.img" | head -n 1)"
+
+2>&1 docker run \
+  --rm \
+  -it \
+  --mount type=bind,source="$(pwd)/${GUESTFISH_IMAGE}",target=/sdcard/filesystem.img \
+  lukechilds/dockerpi:vm
