@@ -21,6 +21,7 @@ Go to any directory containing an `.img` file and type one of the following comm
   * `guestfish` — Opens the raw image disk file using guestfish.
   * `virt-customize` — Opens the raw image disk using libguestfs' virt-customize.
   * `pi` — Opens the raw image disk using a dockerized ARM emulator that emulates a Raspberry PI.
+  * [`copy-out`](https://gist.github.com/bkahlert/9ba2228f0ebb0de8dbd21b90e83f35da) — Copies hole file trees out of a raw image.
 
 Build
 -----
