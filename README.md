@@ -1,14 +1,14 @@
 bkahlert/libguestfs
 ===================
 
-Containerized (〜￣△￣)〜o/￣￣￣<゜)))彡 libguestfs that plays especically nice with ImgCstmzr.
+Containerized (〜￣△￣)〜o/￣￣￣<゜)))彡 libguestfs.
 
 Installation
 ------------
 
 The following command
 - builds the Docker image, and
-- copies a few scripts to `~/bin`.
+- copies a few scripts to `~/bin` (see [Usage](#Usage)).
 
 ```shell
 scripts/install.sh
@@ -21,7 +21,7 @@ Go to any directory containing an `.img` file and type one of the following comm
   * `guestfish` — Opens the raw image disk file using guestfish.
   * `virt-customize` — Opens the raw image disk using libguestfs' virt-customize.
   * `pi` — Opens the raw image disk using a dockerized ARM emulator that emulates a Raspberry PI.
-  * [`copy-out`](https://gist.github.com/bkahlert/9ba2228f0ebb0de8dbd21b90e83f35da) — Copies hole file trees out of a raw image.
+  * [`copy-out`](https://gist.github.com/bkahlert/9ba2228f0ebb0de8dbd21b90e83f35da) — Copies whole file trees out of a raw image.
 
 Build
 -----

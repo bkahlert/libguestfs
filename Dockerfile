@@ -1,4 +1,4 @@
-FROM hrishikesh/libvirtd:latest
+FROM ubuntu:latest
 
 ARG VCS_REF
 ARG BUILD_VERSION
@@ -21,19 +21,16 @@ LABEL maintainer="Björn Kahlert <mail@bkahlert.com" \
 
 ENV DEBIAN_FRONTEND noninteractive
 
-RUN yum update -y \
- && yum install -y linux-image-generic libguestfs-tools \
- && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && \
+    apt-get install --no-install-recommends -y \
+          libguestfs-tools \
+          qemu-utils \
+          linux-image-generic
 
-VOLUME ["/shared"]
-VOLUME ["/images"]
-
-WORKDIR /images
-
-ENV LIBGUESTFS_DEBUG 0
-ENV LIBGUESTFS_TRACE 0
-ENV LIBGUESTFS_BACKEND direct
-ENV GUESTFISH_PS1 '(〜￣△￣)〜o/￣￣￣<゜)))彡 '
+ENV LIBGUESTFS_DEBUG=0 \
+    LIBGUESTFS_TRACE=0 \
+    LIBGUESTFS_BACKEND=direct \
+    GUESTFISH_PS1='(〜￣△￣)〜o/￣￣￣<゜)))彡 '
 
 ENTRYPOINT ["/usr/bin/guestfish"]
 CMD ["-h"]
