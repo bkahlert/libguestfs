@@ -3,11 +3,12 @@ FROM ubuntu:latest
 ARG VCS_REF
 ARG BUILD_VERSION
 
-LABEL maintainer="Björn Kahlert <mail@bkahlert.com" \
+LABEL maintainer="Björn Kahlert <mail@bkahlert.com>" \
+      authors="Björn Kahlert <mail@bkahlert.com>" \
       org.label-schema.schema-version="1.0" \
       org.label-schema.build-date=$BUILD_DATE \
       org.label-schema.name="bkahlert/libguestfs" \
-      org.label-schema.description="Containerized (〜￣△￣)〜o/￣￣￣<゜)))彡 libguestfs that plays especically nice with ImgCstmzr" \
+      org.label-schema.description="Containerized libguestfs including guestfish (〜￣△￣)〜o/￣￣￣<゜)))彡" \
       org.label-schema.url="https://bkahlert.com/" \
       org.label-schema.vcs-url="https://github.com/bkahlert/libguestfs" \
       org.label-schema.vcs-ref=$VCS_REF \
