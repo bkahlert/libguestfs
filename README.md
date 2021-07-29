@@ -1,7 +1,7 @@
 bkahlert/libguestfs
 ===================
 
-Containerized (〜￣△￣)〜o/￣￣￣<゜)))彡 libguestfs.
+Containerized libguestfs including guestfish (〜￣△￣)〜o/￣￣￣<゜)))彡
 
 Installation
 ------------
