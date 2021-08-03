@@ -18,8 +18,8 @@ GUESTFISH_IMAGE="$(find . -iname "*.img" | head -n 1)"
   -it \
   --mount type=bind,source="${GUESTFISH_SHARED_DIR}",target=/shared \
   --mount type=bind,source="$(pwd)/${GUESTFISH_IMAGE}",target=/images/disk.img \
-  --entrypoint /usr/bin/virt-customize \
   bkahlert/libguestfs \
+  /usr/bin/virt-customize \
   $CMD
 
 if [ -z "$(ls -A "${GUESTFISH_SHARED_DIR}")" ]; then

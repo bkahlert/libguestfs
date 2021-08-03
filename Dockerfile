@@ -33,5 +33,4 @@ ENV LIBGUESTFS_DEBUG=0 \
     LIBGUESTFS_BACKEND=direct \
     GUESTFISH_PS1='(〜￣△￣)〜o/￣￣￣<゜)))彡 '
 
-ENTRYPOINT ["/usr/bin/guestfish"]
-CMD ["-h"]
+CMD ["/usr/bin/guestfish", "-h"]
