@@ -31,5 +31,5 @@ docker build . --file Dockerfile --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:
 ## Publish
 
 ```shell
-docker push bkahlert/libguestfs
+docker push bkahlert/libguestfs:latest
 ```
