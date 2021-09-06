@@ -23,8 +23,8 @@ docker buildx bake image-all
 
 ## Image
 
-* [Docker Hub](https://hub.docker.com/r/bkahlert/libguestfs/): `bkahlert/libguestfs`
-* [GitHub Container Registry](https://github.com/users/bkahlert/packages/container/package/libguestfs): `ghcr.io/crazy-max/samba`
+* [Docker Hub](https://hub.docker.com/r/bkahlert/libguestfs/) `bkahlert/libguestfs`
+* [GitHub Container Registry](https://github.com/users/bkahlert/packages/container/package/libguestfs) `ghcr.io/crazy-max/samba`
 
 Following platforms for this image are available:
 - linux/amd64
