@@ -1,0 +1,93 @@
+#!/bin/sh
+set -u
+
+# Causes libguestfs to display (very verbose) debug information
+LIBGUESTFS_DEBUG=0
+
+# Causes libguestfs to display a few dozens of traces
+LIBGUESTFS_TRACE=0
+
+_confirmOrQuit() {
+  QUESTION="${1:-"Do you want to continue?":}"
+  read -n1 -s -r -p "${QUESTION}" key
+  printf "\n\e[1A\e[K\e[2m%s\e[m" "${QUESTION}"
+  if [ "$key" = '' ]; then
+    printf "\e[1;32m✔︎\e[m\n"
+  else
+    printf "\e[1;91m✘\e[m\n"
+    exit 0
+  fi
+}
+
+_isAbsolute() {
+  case "$1" in
+  /*)
+    return 0
+    ;;
+
+  *)
+    return 1
+    ;;
+  esac
+}
+
+GUESTFISH_IMAGE="$(find -s . -iname "*.img" -not -path "./shared/*" | head -n 1)"
+if [ ! -f "${GUESTFISH_IMAGE}" ]; then
+  printf "\e[1;31mNo image found to copy out from.\e[39m\n"
+  printf "Please run \e[1;96m%s\e[39m in a directory containing an \e[1;96m%s\e[39m file.\n" "$(basename "$0")" ".img"
+  exit 1
+fi
+
+printf "\e[40;90m░\e[49;39m\e[46;96m░\e[49;39m\e[44;94m░\e[49;39m\e[42;92m░\e[49;39m\e[43;93m\e[49;39m\e[45;95m░\e[49;39m\e[41;91m░\e[49;39m \e[96m%s\e[39m \e[36m%s\e[39m\n" "COPY-OUT" "from ${GUESTFISH_IMAGE}"
+
+PATH_TO_COPY="${1:-/}"
+
+if ! _isAbsolute "${PATH_TO_COPY}"; then
+  _confirmOrQuit "$(printf "An absolute path is required. Use \e[1;96m/%s\e[m instead? " "${PATH_TO_COPY}")"
+  PATH_TO_COPY="/${PATH_TO_COPY}"
+fi
+
+if [ "${PATH_TO_COPY}" = "/" ] && [ -n "$(find "${GUESTFISH_IMAGE}" -prune -size +200000000c)" ]; then
+  _confirmOrQuit "$(printf "The image is rather big. Are you sure you want to copy-out \e[1;96m%s\e[39m ? " "${PATH_TO_COPY}")"
+fi
+
+PATH_TO_COPY_TO=$(dirname "${PATH_TO_COPY}")
+if [ "${PATH_TO_COPY_TO}" = "/" ]; then
+  PATH_TO_COPY_TO=""
+fi
+
+printf "Copying out \e[1;96m%s\e[m to \e[1;96m%s\e[m ...\n" "${PATH_TO_COPY}" "shared${PATH_TO_COPY_TO}"
+
+GUESTFISH_SHARED_DIR="$(pwd)/shared"
+if [ ! -e "${GUESTFISH_SHARED_DIR}" ]; then
+  mkdir "${GUESTFISH_SHARED_DIR}"
+fi
+
+docker 2>&1 run \
+  --env LIBGUESTFS_DEBUG="${LIBGUESTFS_DEBUG}" \
+  --env LIBGUESTFS_TRACE="${LIBGUESTFS_TRACE}" \
+  --workdir / \
+  --rm \
+  --interactive \
+  --mount type=bind,source="${GUESTFISH_SHARED_DIR}",target=/shared \
+  --mount type=bind,source="$(pwd)/${GUESTFISH_IMAGE}",target=/images/disk.img \
+  bkahlert/libguestfs \
+  /usr/bin/guestfish \
+  --ro \
+  --add /images/disk.img \
+  --mount /dev/sda2:/ \
+  --mount /dev/sda1:/boot \
+<<COMMANDS
+!mkdir -p "shared${PATH_TO_COPY}"
+-copy-out "${PATH_TO_COPY}" "shared${PATH_TO_COPY_TO}"
+umount-all
+exit
+COMMANDS
+
+if [ -z "$(ls -A "${GUESTFISH_SHARED_DIR}")" ]; then
+  rmdir "${GUESTFISH_SHARED_DIR}"
+fi
+
+printf "Successfully copied out \e[1;96m%s\e[39m to \e[1;96m%s\e[39m\n" \
+  "${PATH_TO_COPY}" \
+  "shared${PATH_TO_COPY_TO}"
