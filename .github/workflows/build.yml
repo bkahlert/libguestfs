@@ -38,8 +38,6 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=edge
           labels: |
-            org.opencontainers.image.title=libguestfs
-            org.opencontainers.image.description=Containerized libguestfs including virt-customize, guestfish, etc.
             org.opencontainers.image.vendor=BKAHLERT
 
       - name: Set up QEMU
