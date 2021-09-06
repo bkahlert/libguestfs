@@ -12,9 +12,6 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
-env:
-  DOCKERHUB_SLUG: bkahlert/libguestfs
-  GHCR_SLUG: ghcr.io/bkahlert/libguestfs
 
 jobs:
   build:
