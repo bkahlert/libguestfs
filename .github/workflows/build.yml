@@ -24,6 +24,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - name: GitHub Actions Cleaner
+        uses: rokibhasansagar/slimhub_actions@v3
+
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v3
