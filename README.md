@@ -27,37 +27,35 @@ docker buildx bake image-all
 * [GitHub Container Registry](https://github.com/users/bkahlert/packages/container/package/libguestfs) `ghcr.io/crazy-max/samba`
 
 Following platforms for this image are available:
-- linux/amd64
-- linux/arm/v6
-- linux/arm/v7
-- linux/arm64
-- linux/386
-- linux/ppc64le
-- linux/s390x
+* linux/amd64
+* linux/arm/v7
+* linux/arm64/v8
+* linux/riscv64
+* linux/ppc64le
+* linux/s390x
 
 
 ## Usage
 
 ```shell
-docker run \
-  --workdir / \
-  --rm \
-  --interactive \
-  --mount type=bind,source="$(pwd)/data",target=/data \
-  --mount type=bind,source="$(pwd)/disk.img",target=/disk.img \
-  bkahlert/libguestfs \
-  /usr/bin/guestfish \
+docker run --rm -it \
+  -v "$(pwd)/data:/data" -v "$(pwd)/disk.img:/disk.img" \
+  bkahlert/libguestfs guestfish \
   --ro \
   --add /disk.img \
   --mount /dev/sda2:/ \
   --mount /dev/sda1:/boot \
 <<COMMANDS
-!mkdir -p "shared${PATH_TO_COPY}"
--copy-out "${PATH_TO_COPY}" "shared${PATH_TO_COPY_TO}"
+-copy-out "/boot" "data"
 umount-all
 exit
 COMMANDS
 ```
+
+The command requires `disk.img` in this directory, mounts it with 
+the `guestfish` tool and executes all guestfish commands enclosed by `COMMANDS` on the mounted `disk.img`.
+
+In this case the directory `/boot` and its contents is copied to data.
 
 
 ## Contributing

@@ -31,7 +31,7 @@ _isAbsolute() {
   esac
 }
 
-GUESTFISH_IMAGE="$(find -s . -iname "*.img" -not -path "./shared/*" | head -n 1)"
+GUESTFISH_IMAGE="$(find -s . -iname "*.img" -not -path "./data/*" | head -n 1)"
 if [ ! -f "${GUESTFISH_IMAGE}" ]; then
   printf "\e[1;31mNo image found to copy out from.\e[39m\n"
   printf "Please run \e[1;96m%s\e[39m in a directory containing an \e[1;96m%s\e[39m file.\n" "$(basename "$0")" ".img"
@@ -56,20 +56,19 @@ if [ "${PATH_TO_COPY_TO}" = "/" ]; then
   PATH_TO_COPY_TO=""
 fi
 
-printf "Copying out \e[1;96m%s\e[m to \e[1;96m%s\e[m ...\n" "${PATH_TO_COPY}" "shared${PATH_TO_COPY_TO}"
+printf "Copying out \e[1;96m%s\e[m to \e[1;96m%s\e[m ...\n" "${PATH_TO_COPY}" "data${PATH_TO_COPY_TO}"
 
-GUESTFISH_SHARED_DIR="$(pwd)/shared"
-if [ ! -e "${GUESTFISH_SHARED_DIR}" ]; then
-  mkdir "${GUESTFISH_SHARED_DIR}"
+GUESTFISH_DATA_DIR="$(pwd)/data"
+if [ ! -e "${GUESTFISH_DATA_DIR}" ]; then
+  mkdir "${GUESTFISH_DATA_DIR}"
 fi
 
 docker 2>&1 run \
   --env LIBGUESTFS_DEBUG="${LIBGUESTFS_DEBUG}" \
   --env LIBGUESTFS_TRACE="${LIBGUESTFS_TRACE}" \
-  --workdir / \
   --rm \
   --interactive \
-  --mount type=bind,source="${GUESTFISH_SHARED_DIR}",target=/shared \
+  --mount type=bind,source="${GUESTFISH_DATA_DIR}",target=/data \
   --mount type=bind,source="$(pwd)/${GUESTFISH_IMAGE}",target=/images/disk.img \
   bkahlert/libguestfs \
   /usr/bin/guestfish \
@@ -78,16 +77,16 @@ docker 2>&1 run \
   --mount /dev/sda2:/ \
   --mount /dev/sda1:/boot \
 <<COMMANDS
-!mkdir -p "shared${PATH_TO_COPY}"
--copy-out "${PATH_TO_COPY}" "shared${PATH_TO_COPY_TO}"
+!mkdir -p "data${PATH_TO_COPY}"
+-copy-out "${PATH_TO_COPY}" "data${PATH_TO_COPY_TO}"
 umount-all
 exit
 COMMANDS
 
-if [ -z "$(ls -A "${GUESTFISH_SHARED_DIR}")" ]; then
-  rmdir "${GUESTFISH_SHARED_DIR}"
+if [ -z "$(ls -A "${GUESTFISH_DATA_DIR}")" ]; then
+  rmdir "${GUESTFISH_DATA_DIR}"
 fi
 
 printf "Successfully copied out \e[1;96m%s\e[39m to \e[1;96m%s\e[39m\n" \
   "${PATH_TO_COPY}" \
-  "shared${PATH_TO_COPY_TO}"
+  "data${PATH_TO_COPY_TO}"

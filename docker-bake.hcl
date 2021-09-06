@@ -34,6 +34,5 @@ target "image-all" {
     "linux/s390x"
 //    "linux/mips64le",
 //    "linux/mips64",
-//    "linux/386",
   ]
 }

@@ -4,9 +4,9 @@ if [ -z "$CMD" ]; then
     CMD="-h"
 fi
 
-GUESTFISH_SHARED_DIR="$(pwd)/shared"
-if [ ! -e "${GUESTFISH_SHARED_DIR}" ]; then
-  mkdir "${GUESTFISH_SHARED_DIR}"
+GUESTFISH_DATA_DIR="$(pwd)/data"
+if [ ! -e "${GUESTFISH_DATA_DIR}" ]; then
+  mkdir "${GUESTFISH_DATA_DIR}"
 fi
 
 GUESTFISH_IMAGE="$(find . -iname "*.img" | head -n 1)"
@@ -16,12 +16,12 @@ GUESTFISH_IMAGE="$(find . -iname "*.img" | head -n 1)"
   --env LIBGUESTFS_TRACE=0 \
   --rm \
   -it \
-  --mount type=bind,source="${GUESTFISH_SHARED_DIR}",target=/shared \
+  --mount type=bind,source="${GUESTFISH_DATA_DIR}",target=/data \
   --mount type=bind,source="$(pwd)/${GUESTFISH_IMAGE}",target=/images/disk.img \
   bkahlert/libguestfs \
   /usr/bin/guestfish \
   $CMD
 
-if [ -z "$(ls -A "${GUESTFISH_SHARED_DIR}")" ]; then
-   rmdir "${GUESTFISH_SHARED_DIR}"
+if [ -z "$(ls -A "${GUESTFISH_DATA_DIR}")" ]; then
+   rmdir "${GUESTFISH_DATA_DIR}"
 fi

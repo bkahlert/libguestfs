@@ -12,6 +12,6 @@ ENV LIBGUESTFS_DEBUG=0 \
     LIBGUESTFS_TRACE=0 \
     LIBGUESTFS_BACKEND=direct
 
-WORKDIR /data
+WORKDIR /
 
 CMD ["/usr/bin/guestfish", "-h"]
