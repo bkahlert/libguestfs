@@ -1,8 +1,5 @@
 FROM ubuntu:20.04
 
-ARG VCS_REF
-ARG BUILD_VERSION
-
 ENV DEBIAN_FRONTEND noninteractive
 
 RUN apt-get update \
