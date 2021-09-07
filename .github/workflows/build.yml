@@ -7,6 +7,7 @@ on:
     paths-ignore: ['**.md']
   pull_request:
     branches: ['master']
+    tags: ['dependencies']
     paths-ignore: ['**.md']
 
 env:
@@ -58,7 +59,7 @@ jobs:
         uses: docker/login-action@v1
         with:
           registry: ghcr.io
-          username: ${{ github.actor }}
+          username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build

@@ -38,7 +38,7 @@ Following platforms for this image are available:
 ## Usage
 
 ```shell
-docker run --rm -it \
+docker run --rm -i \
   -v "$(pwd)/data:/data" -v "$(pwd)/disk.img:/disk.img" \
   bkahlert/libguestfs guestfish \
   --ro \

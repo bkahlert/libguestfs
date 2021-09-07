@@ -1,9 +1,7 @@
 FROM ubuntu:20.04
 
-ENV DEBIAN_FRONTEND noninteractive
-
 RUN apt-get update \
- && apt-get install -qq --no-install-recommends \
+ && DEBIAN_FRONTEND=noninteractive apt-get install -qq --no-install-recommends \
             libguestfs-tools \
             qemu-utils \
             linux-image-generic
