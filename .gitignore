@@ -1,1 +1,12 @@
 /.idea
+/*.iml
+
+/.git
+/.github
+/.gitignore
+/CHANGELOG.md
+/LICENSE
+/README.md
+
+/data
+/disk.img

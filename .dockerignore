@@ -2,6 +2,10 @@
 /.git
 /.github
 /.gitignore
+/data
+/disk.img
+/test
 /CHANGELOG.md
 /LICENSE
 /README.md
+.DS_Store
