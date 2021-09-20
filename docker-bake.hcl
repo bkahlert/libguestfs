@@ -29,10 +29,8 @@ target "image-all" {
     "linux/arm/v7",
 //    "linux/arm64",
     "linux/arm64/v8",
-    "linux/riscv64",
     "linux/ppc64le",
+    "linux/riscv64",
     "linux/s390x"
-//    "linux/mips64le",
-//    "linux/mips64",
   ]
 }

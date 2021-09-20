@@ -1,0 +1,190 @@
+#!/bin/bash
+#
+# Bats wrapper that transparently delegates calls to an
+# ad-hoc built Docker image containing Bats.
+#
+# Advantages:
+# - no installation necessary
+# - further functionality easily addable
+
+set -euo pipefail
+
+# Prints a random alphanumeric string.
+#
+# Globals:
+#   none
+# Arguments:
+#   $1 - length (default: 32)
+function random_string() {
+  tr -dc 'a-zA-Z0-9' < /dev/urandom | fold -w "${1:-32}" | head -n 1
+}
+
+# Returns a Docker entrypoint Bash script that fixes Docker socket permissions
+# and drops its root permissions before continuing execution.
+#
+# The parameters `puid` and `pgid` have to be set before persisting this script,
+# e.g. using `sed`.
+#
+# Globals:
+#   none
+# Arguments:
+#  None
+function entrypoint_script() {
+  cat <<'ENTRYPOINT'
+#!/usr/bin/env bash
+set -euo pipefail
+declare -r \
+puid= # set during docker build
+declare -r \
+pgid= # set during docker build
+# get ownership; on Linux being Docker group member would be sufficient
+# but on macOS the mounted socket is always root:root
+chown -R "${puid:?}:${pgid:?}" /var/run/docker.sock
+# drop permissions
+yasu "${puid}:${pgid}" "$@"
+ENTRYPOINT
+}
+
+# Builds a Bats docker container and returns its image ID.
+# All arguments are passed unchanged to `docker build`.
+#
+# Globals:
+#   none
+# Arguments:
+#   $@ - docker build arguments
+function docker_build() {
+  DOCKER_BUILDKIT=1 \
+  DOCKER_SCAN_SUGGEST=false \
+    docker build \
+      --quiet \
+      --build-arg ENTRYPOINT_SCRIPT="$(entrypoint_script)" \
+      "$@" - <<'DOCKERFILE'
+FROM bats/bats
+RUN mkdir -p /opt
+RUN apk \
+    --no-cache \
+    --update \
+    add \
+    bash \
+    curl \
+    git \
+    shadow
+RUN set -eu; \
+  \
+  arch="$(uname -m)"; \
+  case "$arch" in \
+    # amd64
+    x86_64) dockerArch='x86_64' ;; \
+    # arm32v6
+    armhf) dockerArch='armel' ;; \
+    # arm32v7
+    armv7|armv7l) dockerArch='armhf' ;; \
+    # arm64v8
+    aarch64) dockerArch='aarch64' ;; \
+    # ppc64le
+    ppc64le) dockerArch='ppc64le' ;; \
+    # s390x
+    s390x) dockerArch='s390x' ;; \
+    *) echo >&2 "error: unsupported architecture ($arch)"; exit 1 ;;\
+  esac; \
+  \
+  if ! curl -LfsSo docker.tgz "https://download.docker.com/linux/static/stable/${dockerArch}/docker-18.06.3-ce.tgz"; then \
+    echo >&2 "error: failed to download 'docker-18.06.3-ce.tgz' from 'stable' for '${dockerArch}'"; \
+    exit 1; \
+  fi; \
+  \
+  tar --extract \
+      --file docker.tgz \
+      --strip-components 1 \
+      --directory /usr/local/bin/ \
+  ; \
+  rm docker.tgz; \
+  \
+  docker --version
+ARG PUID=1000
+ARG PGID=1000
+ARG ENTRYPOINT_SCRIPT
+RUN git clone https://github.com/bats-core/bats-support.git /opt/bats-support \
+ && git clone https://github.com/bats-core/bats-assert.git /opt/bats-assert \
+ && git clone https://github.com/bats-core/bats-file.git /opt/bats-file \
+ && find /opt/bats-*/ -type d -name "test" -exec rm -rf {} + \
+ && ln -s /opt/bats_load_lib /usr/local/bin/load_lib \
+ && echo "${ENTRYPOINT_SCRIPT}" > /usr/local/bin/entrypoint.sh \
+ && sed -i -e "s/^puid.*/puid=${PUID}/" -e "s/^pgid.*/pgid=${PGID}/" /usr/local/bin/entrypoint.sh \
+ && chmod +x /usr/local/bin/entrypoint.sh
+RUN groupadd \
+    --gid $PGID \
+    tester
+RUN useradd \
+    --uid $PUID \
+    --gid tester \
+    --shell /bin/bash \
+    tester
+COPY --from=crazymax/yasu:latest / /
+ENTRYPOINT ["/tini", "--", "entrypoint.sh", "bash", "bats"]
+DOCKERFILE
+}
+
+# Builds and runs a Bats Docker image to execute tests.
+# Includes bash-support, bash-assert, bash-file and a Docker CLI.
+#
+# Globals:
+#   PWD
+#   TERM
+#   BATS_IMAGE_ID - ID of the Docker image containing Bats (default: built ad-hoc)
+#   BATS_TMPDIR - base temporary directory used by Bats
+# Arguments:
+#   $@ - docker run arguments
+# bashsupport disable=BP2001,BP5006
+function main() {
+  local -a DOCKER_ARGS=()
+  local -a BATS_ARGS=()
+  while (("$#")); do
+    case "$1" in
+      -e|--env)
+        if [ -n "$2" ] && [ "${2:0:1}" != "-" ]; then
+          DOCKER_ARGS+=("$1" "$2")
+          shift 2
+        else
+          echo " $(tput setaf 1)✘$(tput sgr0) missing argument for $1" >&2
+          exit 1
+        fi
+        ;;
+      *)
+        BATS_ARGS+=("$1")
+        shift
+        ;;
+    esac
+  done
+
+  if [ -n "${BATS_IMAGE_ID:-}" ]; then
+    echo "🐳 re-using existing Bats Docker image: ${BATS_IMAGE_ID}"
+  else
+    BATS_IMAGE_ID=$(
+      docker_build \
+        --tag bats:local \
+        --build-arg PUID="$(id -u)" \
+        --build-arg PGID="$(id -g)"
+    )
+    export BATS_IMAGE_ID
+    echo "🐳 using built Bats Docker image: ${BATS_IMAGE_ID}"
+  fi
+
+  docker run --rm --name "bats-$(random_string 3)" \
+    -e TERM="${TERM:-xterm-256color}" \
+    -e TMPDIR="${PWD:?}/${BATS_TMPDIR%${PWD}}" \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    -v "${PWD:?}:${PWD:?}" \
+    -w "${PWD:?}" \
+    "${DOCKER_ARGS[@]+"${DOCKER_ARGS[@]}"}" \
+    "${BATS_IMAGE_ID:?}" \
+    --formatter pretty \
+    --jobs "$(grep 2>/dev/null -c ^processor /proc/cpuinfo || echo 4)" \
+    --no-parallelize-within-files \
+    --recursive \
+    --report-formatter junit \
+    --timing \
+    "${BATS_ARGS[@]+"${BATS_ARGS[@]}"}"
+}
+
+main "$@"

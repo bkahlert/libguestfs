@@ -1,0 +1,19 @@
+#!/bin/bash
+
+set -euo pipefail
+
+declare -a virt_builder_args=("$@")
+if [ ${#virt_builder_args[@]} -eq 0 ]; then
+    virt_builder_args=("--help")
+fi
+
+docker run -i --rm --name "${0##*/}-$(tr -dc 'a-zA-Z0-9' < /dev/urandom | fold -w 3 | head -n 1)" \
+  -e PUID="$(id -u)" \
+  -e PGID="$(id -g)" \
+  -e LIBGUESTFS_DEBUG="${LIBGUESTFS_DEBUG:-0}" \
+  -e LIBGUESTFS_TRACE="${LIBGUESTFS_TRACE:-0}" \
+  -v "$PWD:$PWD" \
+  -w "$PWD" \
+  "${LIBGUESTFS_IMAGE:-bkahlert/libguestfs}" \
+  virt-builder \
+  "${virt_builder_args[@]}"

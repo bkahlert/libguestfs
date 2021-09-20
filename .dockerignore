@@ -2,6 +2,9 @@
 /.git
 /.github
 /.gitignore
+/build
+/test
 /CHANGELOG.md
 /LICENSE
 /README.md
+.DS_Store
