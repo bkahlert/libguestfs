@@ -43,7 +43,7 @@ jobs:
             --output "${{ steps.prep.outputs.test_reports }}"
 
       - name: Upload test reports
-        uses: actions/upload-artifacts@v2
+        uses: actions/upload-artifact@v2
         if: success() || failure()
         with:
           name: test-reports
