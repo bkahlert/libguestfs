@@ -85,6 +85,7 @@ function main() {
   fi
 
   # call bats
+  chmod +x "${BATS_CMD}"
   "${BATS_CMD}" "${BATS_ARGS[@]+"${BATS_ARGS[@]}"}"
 }
 
