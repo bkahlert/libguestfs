@@ -184,7 +184,8 @@ function main() {
     --recursive \
     --report-formatter junit \
     --timing \
-    "${BATS_ARGS[@]+"${BATS_ARGS[@]}"}"
+    "${BATS_ARGS[@]+"${BATS_ARGS[@]}"}" \
+    --help
 }
 
 main "$@"
