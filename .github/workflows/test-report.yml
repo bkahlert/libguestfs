@@ -16,4 +16,4 @@ jobs:
           name: Bats tests
           path: '*.xml'
           reporter: java-junit
-          working-directory: /home/runner/work/libguestfs/libguestfs/test
+          working-directory: /home/runner/work/libguestfs/test
