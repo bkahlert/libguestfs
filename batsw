@@ -161,9 +161,9 @@ function main() {
   fi
 
   echo "foo"
-  echo "bats-$(tr -dc '[:alnum:]' < /dev/urandom | dd bs=4 count=1 2>/dev/null)"
+  echo "bats-$(tr -dc '[:alnum:]' < /dev/urandom 2>/dev/null | dd bs=4 count=1 2>/dev/null)"
   echo "bar"
-  echo docker run --rm --name "bats-$(tr -dc '[:alnum:]' < /dev/urandom | dd bs=4 count=1 2>/dev/null)" \
+  echo docker run --rm --name "bats-$(tr -dc '[:alnum:]' < /dev/urandom 2>/dev/null | dd bs=4 count=1 2>/dev/null)" \
     -e TERM="${TERM:-xterm-256color}" \
     -e TMPDIR="${PWD:?}/${BATS_TMPDIR%${PWD}}" \
     -v /var/run/docker.sock:/var/run/docker.sock \

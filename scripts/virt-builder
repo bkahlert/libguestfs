@@ -7,7 +7,7 @@ if [ ${#virt_builder_args[@]} -eq 0 ]; then
     virt_builder_args=("--help")
 fi
 
-docker run -i --rm --name "${0##*/}-$(tr -dc '[:alnum:]' < /dev/urandom | dd bs=4 count=1 2>/dev/null)" \
+docker run -i --rm --name "${0##*/}-$(tr -dc '[:alnum:]' < /dev/urandom 2>/dev/null | dd bs=4 count=1 2>/dev/null)" \
   -e PUID="$(id -u)" \
   -e PGID="$(id -g)" \
   -e LIBGUESTFS_DEBUG="${LIBGUESTFS_DEBUG:-0}" \
