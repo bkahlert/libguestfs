@@ -58,7 +58,8 @@ RUN apk \
     bash \
     curl \
     git \
-    shadow
+    shadow \
+    sshpass
 RUN set -eu; \
   \
   arch="$(uname -m)"; \

@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="run tests" type="BashProRunConfiguration">
-    <option name="scriptParameters" value="test --env BUILD_TAG=test --output build/test-reports" />
+    <option name="scriptParameters" value="--env BUILD_TAG=test --output build/test-reports test" />
     <option name="scriptPath" value="$PROJECT_DIR$/run_tests" />
     <RunnerSettings bashdbVersion="Automatic" bashPathMapper="Automatic" RunnerId="pro.bashsupport.shDebugRunner" />
     <method v="2" />

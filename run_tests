@@ -80,7 +80,10 @@ function main() {
   echo "$(tput setaf 7) ℹ$(tput sgr0) bats command line:" "${BATS_CMD}" "${BATS_ARGS[@]+"${BATS_ARGS[@]}"}"
 
   if [ -n "${DOCKER_BAKE:-}" ]; then
-    local -r baked_tag="$(bake_local "${DOCKER_BAKE[@]+"${DOCKER_BAKE[@]}"}")"
+    local baked_tag
+    if ! baked_tag="$(bake_local "${DOCKER_BAKE[@]+"${DOCKER_BAKE[@]}"}")"; then
+      exit 1
+    fi
     echo "🐳 built Docker image: ${baked_tag}"
   fi
 
