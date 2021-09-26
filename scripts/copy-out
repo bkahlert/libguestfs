@@ -52,7 +52,7 @@ declare PATH_TO_COPY_TO="${PATH_TO_COPY%/*}"
 # bashsupport disable=BP5006
 PATH_TO_COPY_TO="${DISK%.*}.data/${PATH_TO_COPY_TO#/}"
 
-docker run -i --rm --name "${0##*/}-$(tr -dc 'a-zA-Z0-9' < /dev/urandom | fold -w 3 | head -n 1)" \
+docker run -i --rm --name "${0##*/}-$(tr -dc '[:alnum:]' < /dev/urandom | dd bs=4 count=1 2>/dev/null)" \
   -e PUID="$(id -u)" \
   -e PGID="$(id -g)" \
   -e LIBGUESTFS_DEBUG="${LIBGUESTFS_DEBUG:-0}" \

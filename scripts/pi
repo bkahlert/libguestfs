@@ -10,6 +10,6 @@ if [ ! -f "${DISK}" ]; then
   exit 1
 fi
 
-docker run -i --rm --name "${0##*/}-$(tr -dc 'a-zA-Z0-9' </dev/urandom | fold -w 3 | head -n 1)" \
+docker run -i --rm --name "${0##*/}-$(tr -dc '[:alnum:]' < /dev/urandom | dd bs=4 count=1 2>/dev/null)" \
   -v "$PWD/${DISK}:/sdcard/filesystem.img" \
   lukechilds/dockerpi:vm

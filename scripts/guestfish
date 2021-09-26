@@ -7,7 +7,7 @@ if [ ${#guestfish_args[@]} -eq 0 ]; then
     guestfish_args=("--help")
 fi
 
-docker run -i --rm --name "${0##*/}-$(tr -dc 'a-zA-Z0-9' < /dev/urandom | fold -w 3 | head -n 1)" \
+docker run -i --rm --name "${0##*/}-$(tr -dc '[:alnum:]' < /dev/urandom | dd bs=4 count=1 2>/dev/null)" \
   -e PUID="$(id -u)" \
   -e PGID="$(id -g)" \
   -e LIBGUESTFS_DEBUG="${LIBGUESTFS_DEBUG:-0}" \

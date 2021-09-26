@@ -9,16 +9,6 @@
 
 set -euo pipefail
 
-# Prints a random alphanumeric string.
-#
-# Globals:
-#   none
-# Arguments:
-#   $1 - length (default: 32)
-function random_string() {
-  tr -dc 'a-zA-Z0-9' < /dev/urandom | fold -w "${1:-32}" | head -n 1
-}
-
 # Returns a Docker entrypoint Bash script that fixes Docker socket permissions
 # and drops its root permissions before continuing execution.
 #
@@ -171,9 +161,9 @@ function main() {
   fi
 
   echo "foo"
-  echo "bats-$(random_string 3)"
+  echo "bats-$(tr -dc '[:alnum:]' < /dev/urandom | dd bs=4 count=1 2>/dev/null)"
   echo "bar"
-  echo docker run --rm --name "bats-$(random_string 3)" \
+  echo docker run --rm --name "bats-$(tr -dc '[:alnum:]' < /dev/urandom | dd bs=4 count=1 2>/dev/null)" \
     -e TERM="${TERM:-xterm-256color}" \
     -e TMPDIR="${PWD:?}/${BATS_TMPDIR%${PWD}}" \
     -v /var/run/docker.sock:/var/run/docker.sock \
