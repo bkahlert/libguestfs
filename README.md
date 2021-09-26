@@ -92,6 +92,22 @@ In this case the directory `/boot` and its contents is copied to the current wor
 
 > :bulb: If you prefix a command with `!` (e.g. `!id`) the command will run on the host instead of the mounted guest. Since the libguestfs tools are containerized themselves, "host" signifies the containerized libguestfs hosting Ubuntu installation — and not you actual OS.
 
+## Testing
+
+```shell
+DOCKER_BAKE=--set=*.tags=test \
+./run_tests \
+  --env BUILD_TAG=test \
+  --output build/test-reports \
+  test
+```
+
+`run_tests` is a convenience tool that builds the Docker image to be tested
+if `DOCKER_BAKE` is set and passes all arguments to `batsw`.
+
+`batsw` is a wrapper for the Bash testing framework [Bats](https://github.com/bats-core/bats-core). It builds a Docker
+image on-the-fly containing Bats incl. several libraries and runs all tests
+contained in the passed directory.
 
 ## Troubleshooting
 
