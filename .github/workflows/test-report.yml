@@ -10,10 +10,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
       - uses: dorny/test-reporter@v1
         with:
           artifact: test-reports
           name: Bats tests
           path: '*.xml'
           reporter: java-junit
-          working-directory: /home/runner/work/libguestfs/test
+          working-directory: test
