@@ -1,10 +1,10 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="build and run tests" type="BashProRunConfiguration">
     <envs>
-      <env name="DOCKER_BAKE" value="--set=*.tags=test" />
+      <env name="DOCKER_BAKE" value="--set *.tags=test" />
     </envs>
-    <option name="scriptParameters" value="--env BUILD_TAG=test --output build/test-reports test" />
-    <option name="scriptPath" value="$PROJECT_DIR$/run_tests" />
+    <option name="scriptParameters" value="--env BUILD_TAG=test test" />
+    <option name="scriptPath" value="batsw" />
     <RunnerSettings bashdbVersion="Automatic" bashPathMapper="Automatic" RunnerId="pro.bashsupport.shDebugRunner" />
     <method v="2" />
   </configuration>

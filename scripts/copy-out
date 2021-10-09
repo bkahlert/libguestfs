@@ -22,7 +22,7 @@ while (("$#")); do
 done
 
 # shellcheck disable=SC2155
-declare -r DISK="$(find . -type f -iname "*.img" -not -path "./data/*" | head -n 1)"
+declare -r DISK="$(find . -type f -iname "*.img" -not -path "*.data/*" | head -n 1)"
 if [ ! -f "${DISK}" ]; then
   echo " $(tput setaf 1)✘$(tput sgr0)" "No image found." >&2
   echo "  " "Please run ${0##*/} in a directory containing an .img file." >&2
@@ -52,7 +52,7 @@ declare PATH_TO_COPY_TO="${PATH_TO_COPY%/*}"
 # bashsupport disable=BP5006
 PATH_TO_COPY_TO="${DISK%.*}.data/${PATH_TO_COPY_TO#/}"
 
-docker run -i --rm --name "${0##*/}-$(tr -dc '[:alnum:]' < /dev/urandom 2>/dev/null | dd bs=4 count=1 2>/dev/null)" \
+docker run -i --rm --name "${0##*/}-$(LC_ALL=C tr -dc A-Za-z0-9 </dev/urandom 2>/dev/null | head -c 3 || true)" \
   -e PUID="$(id -u)" \
   -e PGID="$(id -g)" \
   -e LIBGUESTFS_DEBUG="${LIBGUESTFS_DEBUG:-0}" \

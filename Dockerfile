@@ -28,10 +28,10 @@ RUN apt-get update \
 COPY --from=crazymax/yasu:latest / /
 COPY rootfs /
 RUN chmod +x \
-    /usr/local/bin/entrypoint.sh \
-    /usr/local/bin/entrypoint_user.sh
+    /usr/local/bin/entrypoint_user.sh \
+    /usr/local/sbin/entrypoint.sh
 
-ENTRYPOINT ["/usr/bin/dumb-init", "--", "/usr/local/bin/entrypoint.sh"]
+ENTRYPOINT ["/usr/bin/dumb-init", "--", "/usr/local/sbin/entrypoint.sh"]
 CMD ["echo", "Usage: COMMAND [ARG...]\nExample: guestfish --version"]
 
 HEALTHCHECK --interval=5s --timeout=5s --start-period=20s \

@@ -15,7 +15,7 @@ set -euo pipefail
 # Globals:
 #   none
 # Arguments:
-#   $@ - echo arguments
+#   @ - echo arguments
 # Outputs:
 #   FD3 - echo message
 function trace() {

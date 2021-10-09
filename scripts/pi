@@ -3,13 +3,13 @@
 set -euo pipefail
 
 # shellcheck disable=SC2155
-declare -r DISK="$(find . -type f -iname "*.img" -not -path "./data/*" | head -n 1)"
+declare -r DISK="$(find . -type f -iname "*.img" -not -path "*.data/*" | head -n 1)"
 if [ ! -f "${DISK}" ]; then
   echo " $(tput setaf 1)✘$(tput sgr0)" "No image found." >&2
   echo "  " "Please run ${0##*/} in a directory containing an .img file." >&2
   exit 1
 fi
 
-docker run -i --rm --name "${0##*/}-$(tr -dc '[:alnum:]' < /dev/urandom 2>/dev/null | dd bs=4 count=1 2>/dev/null)" \
+docker run -i --rm --name "${0##*/}-$(LC_ALL=C tr -dc A-Za-z0-9 </dev/urandom 2>/dev/null | head -c 3 || true)" \
   -v "$PWD/${DISK}:/sdcard/filesystem.img" \
   lukechilds/dockerpi:vm

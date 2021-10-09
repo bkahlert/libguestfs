@@ -7,7 +7,58 @@
 # - no installation necessary
 # - further functionality easily addable
 
-set -euo pipefail
+set -Eeuo pipefail
+
+# echo wrapper that allows to suppress output.
+# Globals:
+#   BATSW_QUIET - if set, suppresses output
+# Arguments:
+#   None
+echo() {
+  [ "${BATSW_QUIET-}" ] || printf '%s\n' "$*" >&2
+}
+
+# Prints the specified message and exits with exit code 1.
+#
+# Globals:
+#   none
+# Arguments:
+#   * - echo arguments
+die() {
+  printf ' %s %s\n' "$(tput setaf 1)✘$(tput sgr0)" "$*" >&2
+  exit 1
+}
+
+# Splits a variable to an array like it would be the case if a program was called,
+# that is, its value is word-split along the whitespaces while *honoring* quotes.
+#
+# Arguments:
+#   1 - name of the variable
+split_to_array() {
+  # Called like a program in conjunction with eval.
+  # Assigns the arguments array to the variable with the name of the first element.
+  program() {
+    local var="$1"
+    shift
+    eval "$var"='("${@}")'
+  }
+  eval program "$1" "${!1}"
+}
+
+# Bakes a new Docker image
+#
+# Arguments:
+#   * - `docker buildx bake` arguments
+# Outputs:
+#   STDOUT - image ID
+#   STDERR - build progress
+bake_local() {
+  echo "🐳 building Docker image:" "$@"
+  if ! docker buildx bake "$@"; then
+    die "Failed to bake Docker image"
+  fi
+  docker images --format='{{.ID}}' | head -1
+}
 
 # Returns a Docker entrypoint Bash script that fixes Docker socket permissions
 # and drops its root permissions before continuing execution.
@@ -19,10 +70,18 @@ set -euo pipefail
 #   none
 # Arguments:
 #  None
-function entrypoint_script() {
+entrypoint_script() {
   cat <<'ENTRYPOINT'
 #!/usr/bin/env bash
 set -euo pipefail
+if [ "${BATSW_INJECT-}" ]; then
+  inject_path=${BATSW_INJECT%%=*}
+  [ "${inject_path:0:1}" = "/" ] || inject_path="/opt/bats/${inject_path}"
+  inject_content=${BATSW_INJECT#*=}
+  inject_dir=${inject_path%/*}
+  mkdir -p "$inject_dir"
+  printf '%s\n' "$inject_content" > "$inject_path"
+fi
 declare -r \
 puid= # set during docker build
 declare -r \
@@ -41,14 +100,14 @@ ENTRYPOINT
 # Globals:
 #   none
 # Arguments:
-#   $@ - docker build arguments
-function docker_build() {
+#   * - docker build arguments
+docker_build() {
   DOCKER_BUILDKIT=1 \
-  DOCKER_SCAN_SUGGEST=false \
+    DOCKER_SCAN_SUGGEST=false \
     docker build \
-      --quiet \
-      --build-arg ENTRYPOINT_SCRIPT="$(entrypoint_script)" \
-      "$@" - <<'DOCKERFILE'
+    --quiet \
+    --build-arg ENTRYPOINT_SCRIPT="$(entrypoint_script)" \
+    "$@" - <<'DOCKERFILE'
 FROM bats/bats
 RUN mkdir -p /opt
 RUN apk \
@@ -58,7 +117,9 @@ RUN apk \
     bash \
     curl \
     git \
+    jq \
     shadow \
+    openssh-client \
     sshpass
 RUN set -eu; \
   \
@@ -100,9 +161,12 @@ RUN git clone https://github.com/bats-core/bats-support.git /opt/bats-support \
  && git clone https://github.com/bats-core/bats-file.git /opt/bats-file \
  && find /opt/bats-*/ -type d -name "test" -exec rm -rf {} + \
  && ln -s /opt/bats_load_lib /usr/local/bin/load_lib \
- && echo "${ENTRYPOINT_SCRIPT}" > /usr/local/bin/entrypoint.sh \
- && sed -i -e "s/^puid.*/puid=${PUID}/" -e "s/^pgid.*/pgid=${PGID}/" /usr/local/bin/entrypoint.sh \
- && chmod +x /usr/local/bin/entrypoint.sh
+ && mkdir -p /usr/local/sbin \
+ && echo "${ENTRYPOINT_SCRIPT}" > /usr/local/sbin/entrypoint.sh \
+ && sed -i -e "s/^puid.*/puid=${PUID}/" -e "s/^pgid.*/pgid=${PGID}/" /usr/local/sbin/entrypoint.sh \
+ && chmod +x /usr/local/sbin/entrypoint.sh
+# groupadd/useradd must be used instead of addgroup/adduser
+# as on hosts like macOS IDs can be outside of the typical range 0..256000
 RUN groupadd \
     --gid $PGID \
     tester
@@ -110,35 +174,41 @@ RUN useradd \
     --uid $PUID \
     --gid tester \
     --shell /bin/bash \
-    tester
+    --home-dir /home/tester \
+    tester \
+ && mkdir -p /home/tester \
+ && chown -R tester:tester /home/tester \
+ && chmod 711 /home/tester
 COPY --from=crazymax/yasu:latest / /
 ENTRYPOINT ["/tini", "--", "entrypoint.sh", "bash", "bats"]
 DOCKERFILE
 }
 
-# Builds and runs a Bats Docker image to execute tests.
+# Run the specified tests using an ad-hoc built Docker image containing Bats.
 # Includes bash-support, bash-assert, bash-file and a Docker CLI.
 #
 # Globals:
-#   PWD
-#   TERM
+#   TERM - used to determine the terminal capabilities
+#   PWD - the current working directory
 #   BATS_IMAGE_ID - ID of the Docker image containing Bats (default: built ad-hoc)
+#   BATS_IMAGE_LOCAL_TAG - Tag of the locally built Bats Docker image (default: bats:local)
 #   BATS_TMPDIR - base temporary directory used by Bats
 # Arguments:
-#   $@ - docker run arguments
+#   * - docker run arguments
 # bashsupport disable=BP2001,BP5006
-function main() {
+bats() {
   local -a DOCKER_ARGS=()
+  [ ! -t 1 ] || DOCKER_ARGS+=("--tty")
+
   local -a BATS_ARGS=()
-  while (("$#")); do
+  while (($#)); do
     case "$1" in
-      -e|--env)
-        if [ -n "$2" ] && [ "${2:0:1}" != "-" ]; then
+      -e | --env)
+        if [ "${2-}" ] && [ "${2:0:1}" != "-" ]; then
           DOCKER_ARGS+=("$1" "$2")
           shift 2
         else
-          echo " $(tput setaf 1)✘$(tput sgr0) missing argument for $1" >&2
-          exit 1
+          die "value of $1 missing"
         fi
         ;;
       *)
@@ -148,34 +218,124 @@ function main() {
     esac
   done
 
-  if [ -n "${BATS_IMAGE_ID:-}" ]; then
-    echo "🐳 re-using existing Bats Docker image: ${BATS_IMAGE_ID}"
+  local tag="${BATS_IMAGE_LOCAL_TAG:-bats:local}"
+  if [ "${BATS_IMAGE_ID-}" ]; then
+    echo "🐳 re-using existing Bats Docker image: $BATS_IMAGE_ID"
   else
-    BATS_IMAGE_ID=$(
+    if BATS_IMAGE_ID=$(
       docker_build \
-        --tag bats:local \
+        --tag "$tag" \
         --build-arg PUID="$(id -u)" \
         --build-arg PGID="$(id -g)"
-    )
-    export BATS_IMAGE_ID
-    echo "🐳 using built Bats Docker image: ${BATS_IMAGE_ID}"
+    ); then
+      export BATS_IMAGE_ID
+      echo "🐳 using built Bats Docker image: $BATS_IMAGE_ID"
+    elif [ "$(docker image ls --quiet "$tag")" ]; then
+      BATS_IMAGE_ID="$tag"
+      export BATS_IMAGE_ID
+      echo " $(tput setaf 11)⚠$(tput sgr0) failed to build Bats Docker image; re-using previous build: $BATS_IMAGE_ID"
+    else
+      die "Failed to build Bats Docker image and no previous build to re-use"
+    fi
   fi
 
-  docker run --rm --name "bats-$(tr -dc '[:alnum:]' < /dev/urandom 2>/dev/null | dd bs=4 count=1 2>/dev/null)" \
-    -e TERM="${TERM:-xterm-256color}" \
+  local -r -a BATS_ARGS=(
+    --jobs "$(grep 2>/dev/null -c ^processor /proc/cpuinfo || printf %s 4)"
+    --no-parallelize-within-files
+    --recursive
+    --timing
+    "${BATS_ARGS[@]+"${BATS_ARGS[@]}"}"
+  )
+
+  echo "$(tput setaf 7) ℹ$(tput sgr0) bats command line: bats" "${BATS_ARGS[@]+"${BATS_ARGS[@]}"}"
+  docker run --rm --name "bats-$(LC_ALL=C tr -dc A-Za-z0-9 </dev/urandom 2>/dev/null | head -c 3 || true)" \
+    -e TERM="${TERM-}" \
     -e TMPDIR="${PWD:?}/${BATS_TMPDIR%${PWD}}" \
     -v /var/run/docker.sock:/var/run/docker.sock \
     -v "${PWD:?}:${PWD:?}" \
     -w "${PWD:?}" \
     "${DOCKER_ARGS[@]+"${DOCKER_ARGS[@]}"}" \
     "${BATS_IMAGE_ID:?}" \
-    --formatter pretty \
-    --jobs "$(grep 2>/dev/null -c ^processor /proc/cpuinfo || echo 4)" \
-    --no-parallelize-within-files \
-    --recursive \
-    --report-formatter junit \
-    --timing \
     "${BATS_ARGS[@]+"${BATS_ARGS[@]}"}"
+}
+
+# Prepares the Bats environment and
+# runs the specified tests using the included Bats wrapper.
+#
+# Globals:
+#   TERM - used to determine the terminal capabilities
+#   BATS_TMPDIR - base temporary directory used by Bats (default: build/bats-tmp)
+#   BATSW_QUIET - if set, suppresses any output related to the wrapper
+#   DOCKER_BAKE - if set, its value is passed to `docker buildx bake` (example: DOCKER_BAKE=--set=*.tags=test)
+# Arguments:
+#   inject - format: foo=bar; creates a file at location foo with the contents of bar inside the Docker image
+#   quiet  - see BATSW_QUIET
+#   *      - bats arguments
+# bashsupport disable=BP2001,BP5006
+main() {
+  TERM=${TERM:-dumb}
+  export TERM
+  local -r BATS_CMD=bats
+
+  local -a BATS_ARGS=()
+  while (($#)); do
+    case "$1" in
+      --inject)
+        [ "${2-}" ] || die "value of inject missing"
+        BATS_ARGS+=("--env" "BATSW_INJECT=$2")
+        shift 2
+        ;;
+      --quiet)
+        export BATSW_QUIET=1
+        shift
+        ;;
+      -o | --output)
+        if [ "${2-}" ] && [ "${2:0:1}" != "-" ]; then
+          mkdir -p "$2"
+          BATS_ARGS+=("$1" "$2")
+          shift 2
+        else
+          [ "${2-}" ] || die "value of $1 missing"
+        fi
+        ;;
+      *)
+        BATS_ARGS+=("$1")
+        shift
+        ;;
+    esac
+  done
+
+  [ "${BATS_TMPDIR-}" ] || export BATS_TMPDIR=".bats-tmp"
+  [ -e "${BATS_TMPDIR}" ] && rm -rf "${BATS_TMPDIR:?}"
+  [ -e "${BATS_TMPDIR}" ] || mkdir -p "${BATS_TMPDIR}" || die "'${BATS_TMPDIR}' could not be created"
+  # shellcheck disable=SC2064
+  trap "rmdir '${BATS_TMPDIR}' &>/dev/null || true" EXIT # delete if empty on exit
+
+  echo "$(tput setaf 2)▶▶$(tput sgr0) $(tput bold)TEST RUN$(tput sgr0)"
+  echo "$(tput setaf 7) ℹ$(tput sgr0) working directory: $PWD"
+  echo "$(tput setaf 7) ℹ$(tput sgr0) batsw command line:" "${BATS_CMD}" "${BATS_ARGS[@]+"${BATS_ARGS[@]}"}"
+
+  if [ "${DOCKER_BAKE-}" ]; then
+    split_to_array "DOCKER_BAKE"
+    if ! baked_tag="$(bake_local "${DOCKER_BAKE[@]+"${DOCKER_BAKE[@]}"}")"; then
+      exit 1
+    fi
+    echo "🐳 built Docker image: ${baked_tag}"
+  fi
+
+  # Checks for tests starting with capital X.
+  # If such exist, focus on them and ignore the others.
+  local highlighted_tests_args=('--filter' '^X')
+  local highlighted_tests=0
+  if ! highlighted_tests=$(TERM=dumb "${BATS_CMD}" --count "${highlighted_tests_args[@]}" "${BATS_ARGS[@]+"${BATS_ARGS[@]}"}"); then
+    echo "Failed to find highlighted tests"
+  fi
+
+  if [ "$highlighted_tests" = "0" ]; then
+    "${BATS_CMD}" "${BATS_ARGS[@]+"${BATS_ARGS[@]}"}"
+  else
+    "${BATS_CMD}" "${highlighted_tests_args[@]}" "${BATS_ARGS[@]+"${BATS_ARGS[@]}"}"
+  fi
 }
 
 main "$@"

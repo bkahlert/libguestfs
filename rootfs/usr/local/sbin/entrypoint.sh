@@ -21,11 +21,6 @@ mkdir -p /home/libguestfs
 chown -R libguestfs /home/libguestfs
 chmod -R u+rw /home/libguestfs
 
-# Get ownership of data
-mkdir -p /data
-chown -R libguestfs /data
-chmod -R u+rw /data
-
 # Get ownership of disk.img
 [ -e /disk.img ] || touch /disk.img
 chown -R libguestfs /disk.img
