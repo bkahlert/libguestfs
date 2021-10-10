@@ -5,7 +5,7 @@ setup() {
   load 'helpers/setup.sh' 'copy-out'
 }
 
-@test "should copy-out / by default" {
+@test "Xshould copy-out / by default" {
   cp_fixture cirros.img disk.img
 
   LIBGUESTFS_IMAGE="$BUILD_TAG" run ./copy-out
@@ -14,7 +14,7 @@ setup() {
   assert_file_exist 'disk.data/home/cirros/.profile'
 }
 
-@test "should copy-out specified path" {
+@test "Xshould copy-out specified path" {
   cp_fixture cirros.img disk.img
 
   LIBGUESTFS_IMAGE="$BUILD_TAG" run ./copy-out /home/cirros
@@ -23,7 +23,7 @@ setup() {
   assert_file_exist 'disk.data/home/cirros/.profile'
 }
 
-@test "should copy-out from image in subdir" {
+@test "Xshould copy-out from image in subdir" {
   mkdir foo
   cp_fixture cirros.img foo/disk.img
 
@@ -32,7 +32,7 @@ setup() {
   assert_file_exist 'foo/disk.data/home/cirros/.profile'
 }
 
-@test "should fail on missing disk" {
+@test "Xshould fail on missing disk" {
 
   LIBGUESTFS_IMAGE="$BUILD_TAG" run ./copy-out /home/cirros
 

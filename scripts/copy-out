@@ -46,6 +46,7 @@ docker run --rm --name "${0##*/}-$(LC_ALL=C tr -dc A-Za-z0-9 </dev/urandom 2>/de
 !mkdir -p "$dest"
 -copy-out "$source" "$dest"
 umount-all
+exit
 COMMANDS
 
 if [ ! "$(ls -A "$dest")" ]; then
