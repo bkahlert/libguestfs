@@ -2,6 +2,7 @@
 
 touch disk.img
 docker run -i --rm \
+  -e TZ="$(date +"%Z")" \
   -e PUID="$(id -u)" \
   -e PGID="$(id -g)" \
   -e XDG_CACHE_HOME="/virt-builder-cache" \

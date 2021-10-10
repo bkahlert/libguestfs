@@ -7,14 +7,15 @@ setup() {
 
 @test "should print help" {
 
-  LIBGUESTFS_IMAGE="${BUILD_TAG}" run ./virt-builder
+  LIBGUESTFS_IMAGE="$BUILD_TAG" run ./virt-builder
 
-  assert_line --partial 'virt-builder: build virtual machine images quickly'
+  # shellcheck disable=SC1112
+  assert_line --partial 'Use ‘--list’ to list available template'
 }
 
 @test "should execute script" {
 
-  LIBGUESTFS_IMAGE="${BUILD_TAG}" run ./virt-builder \
+  LIBGUESTFS_IMAGE="$BUILD_TAG" run ./virt-builder \
     --list \
     --list-format long \
     --no-check-signature

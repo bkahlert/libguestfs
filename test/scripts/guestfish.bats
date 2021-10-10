@@ -5,17 +5,27 @@ setup() {
   load 'helpers/setup.sh' 'guestfish'
 }
 
-@test "should print help" {
+@test "should start interactive shell by default" {
+  cat <<EXPECT > guestfish.exp && chmod +x guestfish.exp
+#!/usr/bin/expect
+set timeout 15
+spawn "./guestfish"
+expect "help"
+send "quit"
+interact
+EXPECT
 
-  LIBGUESTFS_IMAGE="${BUILD_TAG}" run ./guestfish
+  local output && output="$(LIBGUESTFS_IMAGE="$BUILD_TAG" ./guestfish.exp 2>&1)" || true
 
-  assert_line --partial 'guestfish: guest filesystem shell'
+  assert_output --partial 'Welcome to guestfish'
+  # shellcheck disable=SC1112
+  assert_output --partial 'Type: ‘help’ for help on commands'
 }
 
-@test "should execute script" {
+@test "should execute script if specified" {
   cp_fixture tinycore.iso disk.img
 
-  LIBGUESTFS_IMAGE="${BUILD_TAG}" run ./guestfish \
+  LIBGUESTFS_IMAGE="$BUILD_TAG" run ./guestfish \
     --ro \
     --add disk.img \
     --mount /dev/sda:/ \

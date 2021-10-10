@@ -88,7 +88,7 @@ declare -r \
 pgid= # set during docker build
 # get ownership; on Linux being Docker group member would be sufficient
 # but on macOS the mounted socket is always root:root
-chown -R "${puid:?}:${pgid:?}" /var/run/docker.sock
+chown -R "${puid:?}:${pgid:?}" /var/run/docker.sock 2>/dev/null || true
 # drop permissions
 yasu "${puid}:${pgid}" "$@"
 ENTRYPOINT
@@ -116,6 +116,7 @@ RUN apk \
     add \
     bash \
     curl \
+    expect \
     git \
     jq \
     shadow \
@@ -179,7 +180,7 @@ RUN useradd \
  && mkdir -p /home/tester \
  && chown -R tester:tester /home/tester \
  && chmod 711 /home/tester
-COPY --from=crazymax/yasu:latest / /
+COPY --from=crazymax/yasu:1.17.0 / /
 ENTRYPOINT ["/tini", "--", "entrypoint.sh", "bash", "bats"]
 DOCKERFILE
 }
@@ -198,7 +199,7 @@ DOCKERFILE
 # bashsupport disable=BP2001,BP5006
 bats() {
   local -a DOCKER_ARGS=()
-  [ ! -t 1 ] || DOCKER_ARGS+=("--tty")
+  [ ! -t 2 ] || [ "${TERM-}" = dumb ] || DOCKER_ARGS+=("--tty")
 
   local -a BATS_ARGS=()
   while (($#)); do
@@ -305,7 +306,7 @@ main() {
     esac
   done
 
-  [ "${BATS_TMPDIR-}" ] || export BATS_TMPDIR=".bats-tmp"
+  [ "${BATS_TMPDIR-}" ] || export BATS_TMPDIR="build/bats-tmp"
   [ -e "${BATS_TMPDIR}" ] && rm -rf "${BATS_TMPDIR:?}"
   [ -e "${BATS_TMPDIR}" ] || mkdir -p "${BATS_TMPDIR}" || die "'${BATS_TMPDIR}' could not be created"
   # shellcheck disable=SC2064
