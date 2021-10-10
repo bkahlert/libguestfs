@@ -179,7 +179,7 @@ RUN useradd \
  && mkdir -p /home/tester \
  && chown -R tester:tester /home/tester \
  && chmod 711 /home/tester
-COPY --from=crazymax/yasu:latest / /
+COPY --from=crazymax/yasu:1.17.0 / /
 ENTRYPOINT ["/tini", "--", "entrypoint.sh", "bash", "bats"]
 DOCKERFILE
 }
@@ -198,7 +198,7 @@ DOCKERFILE
 # bashsupport disable=BP2001,BP5006
 bats() {
   local -a DOCKER_ARGS=()
-  [ ! -t 1 ] || DOCKER_ARGS+=("--tty")
+  [ ! -t 2 ] || [ "${TERM-}" = dumb ] || DOCKER_ARGS+=("--tty")
 
   local -a BATS_ARGS=()
   while (($#)); do

@@ -5,17 +5,17 @@ setup() {
   load 'helpers/setup.sh' 'guestfish'
 }
 
-@test "should print help" {
+@test "Xshould print help" {
 
-  LIBGUESTFS_IMAGE="${BUILD_TAG}" run ./guestfish
+  LIBGUESTFS_IMAGE="$BUILD_TAG" run ./guestfish
 
   assert_line --partial 'guestfish: guest filesystem shell'
 }
 
-@test "should execute script" {
+@test "Xshould execute script" {
   cp_fixture tinycore.iso disk.img
 
-  LIBGUESTFS_IMAGE="${BUILD_TAG}" run ./guestfish \
+  LIBGUESTFS_IMAGE="$BUILD_TAG" run ./guestfish \
     --ro \
     --add disk.img \
     --mount /dev/sda:/ \

@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.1 (2021-10-10)
+* Cleanup
+* Add tests
+
 ## 1.2.0 (2021-09-26)
 * Automated testing of scripts
 * Simplified usage of container

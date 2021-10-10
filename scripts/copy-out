@@ -1,29 +1,12 @@
 #!/bin/bash
+# bashsupport disable=BP5004
 
 set -euo pipefail
 
-# bashsupport disable=BP5001,BP5006
-declare -a COPY_OUT_ARGS=()
-while (("$#")); do
-  case "$1" in
-    -f | --force)
-      FORCE=1
-      shift 1
-      ;;
-    -* | --*)
-      echo " $(tput setaf 1)✘$(tput sgr0)" "Unknown flag $1" >&2
-      exit 1
-      ;;
-    *)
-      COPY_OUT_ARGS+=("$1")
-      shift
-      ;;
-  esac
-done
+declare -a docker_args=('--interactive')
 
-# shellcheck disable=SC2155
-declare -r DISK="$(find . -type f -iname "*.img" -not -path "*.data/*" | head -n 1)"
-if [ ! -f "${DISK}" ]; then
+declare disk && disk="$(find . -type f -iname "*.img" -not -path "*.data/*" | head -n 1)"
+if [ ! -f "$disk" ]; then
   echo " $(tput setaf 1)✘$(tput sgr0)" "No image found." >&2
   echo "  " "Please run ${0##*/} in a directory containing an .img file." >&2
   exit 1
@@ -35,46 +18,39 @@ printf "%s░%s" "$(tput setab 4)$(tput setaf 12)" "$(tput sgr0)"
 printf "%s░%s" "$(tput setab 2)$(tput setaf 10)" "$(tput sgr0)"
 printf "%s░%s" "$(tput setab 5)$(tput setaf 13)" "$(tput sgr0)"
 printf "%s░%s" "$(tput setab 1)$(tput setaf 9)" "$(tput sgr0)"
-printf " %sCOPY-OUT%s from %s%s\n" "$(tput setaf 14)" "$(tput setaf 6)" "${DISK}" "$(tput sgr0)"
+printf " %sCOPY-OUT%s from %s%s\n" "$(tput setaf 14)" "$(tput setaf 6)" "$disk" "$(tput sgr0)"
 
-declare -r PATH_TO_COPY="${COPY_OUT_ARGS[0]:-/}"
-if ! [ "${PATH_TO_COPY:0:1}" = "/" ]; then
-  echo " $(tput setaf 1)✘$(tput sgr0)" "${PATH_TO_COPY} must be absolute." >&2
+declare -r source="${1:-/}"
+if [ ! "${source:0:1}" = "/" ]; then
+  echo " $(tput setaf 1)✘$(tput sgr0)" "$source must be absolute." >&2
   exit 1
 fi
 
-if ! [ "${PATH_TO_COPY}" = "/" ] && [ -n "$(find "${DISK}" -prune -size +200000000c)" ]; then
-  _confirmOrQuit "$(printf "The image is rather big. Are you sure you want to copy-out \e[1;96m%s\e[39m ? " "${PATH_TO_COPY}")"
-fi
-
-# bashsupport disable=BP5006
-declare PATH_TO_COPY_TO="${PATH_TO_COPY%/*}"
-# bashsupport disable=BP5006
-PATH_TO_COPY_TO="${DISK%.*}.data/${PATH_TO_COPY_TO#/}"
+declare dest="${source%/*}" && dest="${disk%.*}.data/${dest#/}"
 
 docker run -i --rm --name "${0##*/}-$(LC_ALL=C tr -dc A-Za-z0-9 </dev/urandom 2>/dev/null | head -c 3 || true)" \
+  -e TZ="$(date +"%Z")" \
   -e PUID="$(id -u)" \
   -e PGID="$(id -g)" \
   -e LIBGUESTFS_DEBUG="${LIBGUESTFS_DEBUG:-0}" \
   -e LIBGUESTFS_TRACE="${LIBGUESTFS_TRACE:-0}" \
   -v "$PWD:$PWD" \
   -w "$PWD" \
+  "${docker_args[@]+"${docker_args[@]}"}" \
   "${LIBGUESTFS_IMAGE:-bkahlert/libguestfs}" \
-  guestfish \
-  --ro \
-  --add "${DISK}" \
-  --inspector \
-  <<COMMANDS
-!mkdir -p "${PATH_TO_COPY_TO}"
--copy-out "${PATH_TO_COPY}" "${PATH_TO_COPY_TO}"
+  guestfish --ro -- <<COMMANDS
+add '$disk'
+launch
+inspect-os
+!mkdir -p '$dest'
+-copy-out '$source' '$dest'
 umount-all
-exit
 COMMANDS
 
-if [ -z "$(ls -A "${PATH_TO_COPY_TO}")" ]; then
-  rmdir "${PATH_TO_COPY_TO}"
+if [ ! "$(ls -A "$dest")" ]; then
+  rmdir -- "$dest"
   echo " $(tput setaf 1)✘$(tput sgr0)" "Nothing copied-out." >&2
   exit 1
-else
-  echo " $(tput setaf 2)✔$(tput sgr0)" "Successfully copied out" "${PATH_TO_COPY}" "to" "${PATH_TO_COPY_TO}"
 fi
+
+echo " $(tput setaf 2)✔$(tput sgr0)" "Successfully copied out" "$source" "to" "$dest"

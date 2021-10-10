@@ -2,18 +2,18 @@
 
 set -euo pipefail
 
-declare -a guestfish_args=("$@")
-if [ ${#guestfish_args[@]} -eq 0 ]; then
-    guestfish_args=("--help")
-fi
+declare -a docker_args=('--interactive')
+[ $# -gt 0 ] || docker_args=()
 
-docker run -i --rm --name "${0##*/}-$(LC_ALL=C tr -dc A-Za-z0-9 </dev/urandom 2>/dev/null | head -c 3 || true)" \
+docker run --rm --name "${0##*/}-$(LC_ALL=C tr -dc A-Za-z0-9 </dev/urandom 2>/dev/null | head -c 3 || true)" \
+  -e TZ="$(date +"%Z")" \
   -e PUID="$(id -u)" \
   -e PGID="$(id -g)" \
   -e LIBGUESTFS_DEBUG="${LIBGUESTFS_DEBUG:-0}" \
   -e LIBGUESTFS_TRACE="${LIBGUESTFS_TRACE:-0}" \
   -v "$PWD:$PWD" \
   -w "$PWD" \
+  "${docker_args[@]+"${docker_args[@]}"}" \
   "${LIBGUESTFS_IMAGE:-bkahlert/libguestfs}" \
   guestfish \
-  "${guestfish_args[@]}"
+  "$@"

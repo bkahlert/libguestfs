@@ -2,14 +2,19 @@
 
 set -euo pipefail
 
+declare -a docker_args=()
+[ ! "${-##*i*}" ] || docker_args+=("--interactive")
+[ ! -t 2 ] || [ "${TERM-}" = dumb ] || docker_args+=("--tty")
+
 # shellcheck disable=SC2155
-declare -r DISK="$(find . -type f -iname "*.img" -not -path "*.data/*" | head -n 1)"
-if [ ! -f "${DISK}" ]; then
+declare -r disk="$(find . -type f -iname "*.img" -not -path "*.data/*" | head -n 1)"
+if [ ! -f "$disk" ]; then
   echo " $(tput setaf 1)✘$(tput sgr0)" "No image found." >&2
   echo "  " "Please run ${0##*/} in a directory containing an .img file." >&2
   exit 1
 fi
 
-docker run -i --rm --name "${0##*/}-$(LC_ALL=C tr -dc A-Za-z0-9 </dev/urandom 2>/dev/null | head -c 3 || true)" \
-  -v "$PWD/${DISK}:/sdcard/filesystem.img" \
-  lukechilds/dockerpi:vm
+docker run --rm --name "${0##*/}-$(LC_ALL=C tr -dc A-Za-z0-9 </dev/urandom 2>/dev/null | head -c 3 || true)" \
+  -v "$PWD/${disk}:/sdcard/filesystem.img" \
+  "${docker_args[@]+"${docker_args[@]}"}" \
+  "${LIBGUESTFS_IMAGE:-lukechilds/dockerpi:vm}"
