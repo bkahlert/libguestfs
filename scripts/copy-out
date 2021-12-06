@@ -1,9 +1,6 @@
-#!/bin/bash
-# bashsupport disable=BP5004
+#!/usr/bin/env bash
 
-set -euo pipefail
-
-declare -a docker_args=('--interactive')
+source <(curl -LfsS https://git.io/logr.sh)
 
 declare disk && disk="$(find . -type f -iname "*.img" -not -path "*.data/*" | head -n 1)"
 if [ ! -f "$disk" ]; then
@@ -12,13 +9,7 @@ if [ ! -f "$disk" ]; then
   exit 1
 fi
 
-printf "%s░%s" "$(tput setab 0)$(tput setaf 8)" "$(tput sgr0)"
-printf "%s░%s" "$(tput setab 6)$(tput setaf 14)" "$(tput sgr0)"
-printf "%s░%s" "$(tput setab 4)$(tput setaf 12)" "$(tput sgr0)"
-printf "%s░%s" "$(tput setab 2)$(tput setaf 10)" "$(tput sgr0)"
-printf "%s░%s" "$(tput setab 5)$(tput setaf 13)" "$(tput sgr0)"
-printf "%s░%s" "$(tput setab 1)$(tput setaf 9)" "$(tput sgr0)"
-printf " %sCOPY-OUT%s from %s%s\n" "$(tput setaf 14)" "$(tput setaf 6)" "$disk" "$(tput sgr0)"
+headr "copyOut $disk"
 
 declare -r source="${1:-/}"
 if [ ! "${source:0:1}" = "/" ]; then
@@ -26,19 +17,21 @@ if [ ! "${source:0:1}" = "/" ]; then
   exit 1
 fi
 
-declare dest="${source%/*}" && dest="${disk%.*}.data/${dest#/}"
+declare dest="${source%/*}"
+dest="${disk%.*}.data/${dest#/}"
 
-docker run --rm --name "${0##*/}-$(LC_ALL=C tr -dc A-Za-z0-9 </dev/urandom 2>/dev/null | head -c 3 || true)" \
-  -e TZ="$(date +"%Z")" \
-  -e PUID="$(id -u)" \
-  -e PGID="$(id -g)" \
-  -e LIBGUESTFS_DEBUG="${LIBGUESTFS_DEBUG:-0}" \
-  -e LIBGUESTFS_TRACE="${LIBGUESTFS_TRACE:-0}" \
-  -v "$PWD:$PWD" \
-  -w "$PWD" \
-  "${docker_args[@]+"${docker_args[@]}"}" \
-  "${LIBGUESTFS_IMAGE:-bkahlert/libguestfs}" \
-  guestfish \
+# Runs guestfs with the specified arguments.
+guestfs() {
+  if command -v guestfs >/dev/null; then
+    command guestfs "$@"
+  elif command -v libguestfsw >/dev/null; then
+    command libguestfsw guestfs "$@"
+  else
+    curl -LfsS https://git.io/recordrw | "$SHELL" -s -- guestfs "$@"
+  fi
+}
+
+guestfs \
   --ro \
   --add "$disk" \
   --inspector \
@@ -49,10 +42,4 @@ umount-all
 exit
 COMMANDS
 
-if [ ! "$(ls -A "$dest")" ]; then
-  rmdir -- "$dest"
-  echo " $(tput setaf 1)✘$(tput sgr0)" "Nothing copied-out." >&2
-  exit 1
-fi
-
-echo " $(tput setaf 2)✔$(tput sgr0)" "Successfully copied out" "$source" "to" "$dest"
+[ "$(ls -A "$dest")" ] || rmdir -- "$dest"

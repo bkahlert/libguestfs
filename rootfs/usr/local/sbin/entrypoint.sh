@@ -1,13 +1,11 @@
-#!/bin/bash
-
-set -euo pipefail
+#!/usr/bin/env bash
 
 source logr.sh
 
 # Fixes permissions to stdout and stderr.
 # see https://github.com/containers/conmon/pull/112
 fix_std_permissions() {
-  chmod -R 0777 /proc/self/fd/1 /proc/self/fd/2 || failr "failed to change permissions of stdout and stderr"
+  chmod -R 0777 /proc/self/fd/1 /proc/self/fd/2 || logr error "failed to change permissions of stdout and stderr"
 }
 
 # Updates the group ID of the specified group.
@@ -16,7 +14,8 @@ fix_std_permissions() {
 #   2 - ID of the group
 update_group_id() {
   local -r group=${1:?group missing}
-  local -r gid=${2:?gid missing}
+  local -r -i gid=${2:?gid missing}
+  [ "$gid" -eq "$gid" ] 2>/dev/null || logr error --code "$EX_DATAERR" "invalid group ID $gid"
   if [ "$gid" ] && [ "$gid" != "$(id -g "${group}")" ]; then
     sed -i -e "s/^${group}:\([^:]*\):[0-9]*/${group}:\1:${gid}/" /etc/group
     sed -i -e "s/^${group}:\([^:]*\):\([0-9]*\):[0-9]*/${group}:\1:\2:${gid}/" /etc/passwd
@@ -30,6 +29,7 @@ update_group_id() {
 update_user_id() {
   local -r user=${1:?user missing}
   local -r uid=${2:?uid missing}
+  [ "$uid" -eq "$uid" ] 2>/dev/null || logr error --code "$EX_DATAERR" "invalid user ID $uid"
   if [ "$uid" ] && [ "$uid" != "$(id -u "${user}")" ]; then
     sed -i -e "s/^${user}:\([^:]*\):[0-9]*:\([0-9]*\)/${user}:\1:${uid}:\2/" /etc/passwd
   fi
@@ -188,13 +188,31 @@ wait_for_process() {
   local -r -i max_time_wait="${2:-30}"
   local waited_sec=0
   while ! pgrep "$process_name" >/dev/null; do
-    logr running "waiting $((max_time_wait - waited_sec))s for process ${process_name}" >&2
+    logr task "waiting $((max_time_wait - waited_sec))s for process ${process_name}" >&2
     sleep 1
     waited_sec=$((waited_sec + 1))
     [ "$waited_sec" -lt "$max_time_wait" ] || logr fail "$process_name did not start in time"
   done
   logr success "$process_name is running" >&2
 }
+
+
+# take ownership of /disk.img
+fix_disk() {
+  local -r user="${1:?user missing}"
+  if [ -f /disk.img ]; then
+    chown -R "$user" /disk.img
+    chmod -R u+rw /disk.img
+  fi
+}
+
+# see https://libguestfs.org/guestfs-faq.1.html#where-can-i-get-the-latest-binaries-for
+fix_vmlinuz() {
+  local -r user="${1:?user missing}"
+  chmod 0644 /boot/vmlinuz*
+  usermod -a -G kvm "$user"
+}
+
 
 # Entrypoint for this container that updates system settings
 # in order to reflect the configuration made by environment variables.
@@ -204,33 +222,27 @@ wait_for_process() {
 main() {
   local -r app_user='' app_group=''
 
-  [ ! "${TZ-}" ] || logr task "updating timezone to $TZ" -- update_timezone "$TZ" >&2
-  [ ! "${PGID-}" ] || logr task "updating ID of group $app_group to $PGID" -- update_group_id "$app_group" "$PGID" >&2
-  [ ! "${PUID-}" ] || logr task "updating ID of user $app_user to $PUID" -- update_user_id "$app_user" "$PUID" >&2
+  # redirect entrypoint standard output to FD3 = /dev/null
+  exec 3>/dev/null
+  # ... and only print it to standard error if DEBUG=1 (errors will always be printed)
+  [ "${DEBUG:-0}" = 0 ] || exec 3>&2
+  {
+    [ ! "${TZ-}" ] || logr task "updating timezone to $TZ" -- update_timezone "$TZ"
+    [ ! "${PGID-}" ] || logr task "updating ID of group $app_group to $PGID" -- update_group_id "$app_group" "$PGID"
+    [ ! "${PUID-}" ] || logr task "updating ID of user $app_user to $PUID" -- update_user_id "$app_user" "$PUID" || logr fail "failed to update ID of user $app_user to $PUID"
+    logr task "fixing permissions of stdout and stderr" -- fix_std_permissions
+    logr task "fixing permissions of home directory for $app_user" -- fix_home_permissions "$app_user"
+    logr task "fixing permissions of .ssh directory for $app_user" -- fix_ssh_permissions "$app_user" "$app_group"
 
-  logr task "fixing permissions of stdout and stderr" -- fix_std_permissions >&2
-  logr task "fixing permissions of home directory for $app_user" -- fix_home_permissions "$app_user" >&2
-  logr task "fixing permissions of .ssh directory for $app_user" -- fix_ssh_permissions "$app_user" "$app_group" >&2
+    logr task "fixing permissions of /disk.img" -- fix_disk "$app_user"
+    logr task "fixing permissions of /boot/vmlinuz*" -- fix_vmlinuz "$app_user"
 
-  # take ownership of /disk.img
-  fix_disk() {
-    if [ -f /disk.img ]; then
-      chown -R "$app_user" /disk.img
-      chmod -R u+rw /disk.img
-    fi
-  }
-  logr task "fixing permissions of /disk.img" -- fix_disk >&2
+    logr info "changing to $app_user:$app_group"
+    esc cursor_show
+  } >&3
+  exec 3>&-
 
-  # see https://libguestfs.org/guestfs-faq.1.html#where-can-i-get-the-latest-binaries-for
-  fix_vmlinuz() {
-    chmod 0644 /boot/vmlinuz*
-    usermod -a -G kvm "$app_user"
-  }
-  logr task "fixing permissions of /boot/vmlinuz*" -- fix_vmlinuz >&2
-
-  logr info "changing to $app_user:$app_group" >&2
-  util cursor show >&2
-  yasu "$app_user:$app_group" entrypoint_user.sh "$@"
+  exec yasu "$app_user:$app_group" entrypoint_user.sh "$@"
 }
 
 main "$@"

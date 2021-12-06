@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 touch disk.img
 docker run -i --rm \
@@ -7,7 +7,7 @@ docker run -i --rm \
   -e PGID="$(id -g)" \
   -e XDG_CACHE_HOME="/virt-builder-cache" \
   -v "${TMPDIR%/*}:/virt-builder-cache" \
-  -v "$PWD:$PWD" \
+  -v "$PWD":"$PWD" \
   -w "$PWD" \
   "${BUILD_TAG:-bkahlert/libguestfs}" \
   virt-builder \

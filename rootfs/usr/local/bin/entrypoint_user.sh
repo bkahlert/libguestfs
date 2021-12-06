@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -euo pipefail
+source logr.sh
 
 # see https://libguestfs.org/guestfs-faq.1.html
 if [ "$(id -u)" -eq 0 ]; then

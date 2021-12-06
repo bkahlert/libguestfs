@@ -1,10 +1,6 @@
 #!/usr/bin/env bats
 # bashsupport disable=BP5007
 
-setup() {
-  load 'helpers/setup.sh' 'pi'
-}
-
 @test "should print help" {
 
   run ./pi
@@ -14,7 +10,7 @@ setup() {
 }
 
 @test "should boot" {
-  cp_fixture cirros.img disk.img
+  copy_fixture cirros.img disk.img
 
   run ./pi
 

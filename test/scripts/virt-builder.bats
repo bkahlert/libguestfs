@@ -1,10 +1,6 @@
 #!/usr/bin/env bats
 # bashsupport disable=BP5007
 
-setup() {
-  load 'helpers/setup.sh' 'virt-builder'
-}
-
 @test "should print help" {
 
   LIBGUESTFS_IMAGE="$BUILD_TAG" run ./virt-builder

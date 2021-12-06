@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+  - given-names: "Björn"
+    family-names: "Kahlert"
+    orcid: "https://orcid.org/0000-0003-1705-4067"
+title: "Libguestfs - Containerized libguestfs including virt-customize, guestfish, etc."
+version: 1.3.0
+date-released: 2021-12-03
+url: "https://github.com/bkahlert/libguestfs"
