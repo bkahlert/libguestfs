@@ -1,25 +1,20 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-set -euo pipefail
-
-declare -a docker_args=('--interactive')
-if [ $# -eq 0 ]; then
-  if [ -t 2 ]; then
-    docker_args+=('--tty')
-  else
-    docker_args=()
-  fi
+# If a command list is passed via STDIN (see https://libguestfs.org/guestfish.1.html#from-shell-scripts):
+# - redirect it to a file
+# - pass it to guestfish as file (`-f`)
+if [ ! -t 0 ]; then
+  declare tmp
+  tmp=$(mktemp "guestfish.XXXXXX")
+  trap '[ ! -f "${tmp-}" ] || rm -- "$tmp"' EXIT
+  cat - >"$tmp"
+  set -- "$@" -f "$tmp"
 fi
 
-docker run --rm --name "${0##*/}-$(LC_ALL=C tr -dc A-Za-z0-9 </dev/urandom 2>/dev/null | head -c 3 || true)" \
-  -e TZ="$(date +"%Z")" \
-  -e PUID="$(id -u)" \
-  -e PGID="$(id -g)" \
-  -e LIBGUESTFS_DEBUG="${LIBGUESTFS_DEBUG:-0}" \
-  -e LIBGUESTFS_TRACE="${LIBGUESTFS_TRACE:-0}" \
-  -v "$PWD:$PWD" \
-  -w "$PWD" \
-  "${docker_args[@]+"${docker_args[@]}"}" \
-  "${LIBGUESTFS_IMAGE:-bkahlert/libguestfs}" \
-  guestfish \
-  "$@"
+if command guestfish &>/dev/null; then
+  command guestfish "$@"
+elif command libguestfsw &>/dev/null; then
+  command libguestfsw guestfish "$@"
+else
+  curl -LfsS https://git.io/libguestfsw | "$SHELL" -s -- guestfish "$@"
+fi

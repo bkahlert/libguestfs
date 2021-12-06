@@ -1,20 +1,10 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # bashsupport disable=BP5004
 
-set -euo pipefail
-
-declare -a docker_args=()
-[ ! "${-##*i*}" ] || docker_args+=("--interactive")
-[ ! -t 2 ] || [ "${TERM-}" = dumb ] || docker_args+=("--tty")
-
-docker run --rm --name "${0##*/}-$(LC_ALL=C tr -dc A-Za-z0-9 </dev/urandom 2>/dev/null | head -c 3 || true)" \
-  -e PUID="$(id -u)" \
-  -e PGID="$(id -g)" \
-  -e LIBGUESTFS_DEBUG="${LIBGUESTFS_DEBUG:-0}" \
-  -e LIBGUESTFS_TRACE="${LIBGUESTFS_TRACE:-0}" \
-  -v "$PWD:$PWD" \
-  -w "$PWD" \
-  "${docker_args[@]+"${docker_args[@]}"}" \
-  "${LIBGUESTFS_IMAGE:-bkahlert/libguestfs}" \
-  virt-builder \
-  "$@"
+if command virt-builder &>/dev/null; then
+  command virt-builder "$@"
+elif command libguestfsw &>/dev/null; then
+  command libguestfsw virt-builder "$@"
+else
+  curl -LfsS https://git.io/libguestfsw | "$SHELL" -s -- virt-builder "$@"
+fi

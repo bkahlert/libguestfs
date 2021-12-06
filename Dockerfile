@@ -1,16 +1,20 @@
 FROM ubuntu:20.04
 
 # build time only options
+ARG LOGR_VERSION=0.6.2
 ARG APP_USER=libguestfs
 ARG APP_GROUP=$APP_USER
 
 # build and run time options
+ARG DEBUG=0
 ARG TZ=UTC
+ARG LANG=C.UTF-8
 ARG PUID=1000
 ARG PGID=1000
 ARG LIBGUESTFS_DEBUG=0
 ARG LIBGUESTFS_TRACE=0
 
+# dependencies
 RUN apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install \
     ca-certificates \
@@ -20,33 +24,40 @@ RUN apt-get update \
     linux-image-generic \
     qemu-utils \
     tzdata \
- && groupadd \
-    --gid "$PGID" \
-    "$APP_GROUP" \
- && useradd \
-    --uid $PUID \
-    --gid "$APP_GROUP" \
-    --shell /bin/bash \
-    "$APP_USER" \
  && rm -rf /tmp/* /var/lib/apt/list/*
 
+# app setup
 COPY --from=crazymax/yasu:1.17.0 / /
 COPY rootfs /
 RUN chmod +x \
-    /usr/local/bin/entrypoint_user.sh \
     /usr/local/sbin/entrypoint.sh \
+    /usr/local/bin/entrypoint_user.sh \
  && sed -Ei -e "s/([[:space:]]app_user=)[^[:space:]]*/\1$APP_USER/" \
             -e "s/([[:space:]]app_group=)[^[:space:]]*/\1$APP_GROUP/" \
              /usr/local/sbin/entrypoint.sh \
- && curl -LfsSo /usr/local/bin/logr.sh https://raw.githubusercontent.com/bkahlert/logr/master/logr.sh
+ && curl -LfsSo /usr/local/bin/logr.sh https://github.com/bkahlert/logr/releases/download/v${LOGR_VERSION}/logr.sh
 
-ENV TZ="$TZ" \
-    LANG="C.UTF-8" \
+# env setup
+ENV DEBUG="$DEBUG" \
+    TZ="$TZ" \
+    LANG="$LANG" \
     PUID="$PUID" \
     PGID="$PGID" \
     LIBGUESTFS_DEBUG="$LIBGUESTFS_DEBUG" \
     LIBGUESTFS_TRACE="$LIBGUESTFS_TRACE"
 
+# user setup
+RUN groupadd \
+    --gid "$PGID" \
+    "$APP_GROUP" \
+ && useradd \
+    --comment "app user" \
+    --uid $PUID \
+    --gid "$APP_GROUP" \
+    --shell /bin/bash \
+    "$APP_USER"
+
+# finalization
 ENTRYPOINT ["/usr/bin/dumb-init", "--", "/usr/local/sbin/entrypoint.sh"]
 CMD ["echo", "Usage: COMMAND [ARG...]\nExample: guestfish --version"]
 

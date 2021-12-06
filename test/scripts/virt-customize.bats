@@ -1,27 +1,23 @@
 #!/usr/bin/env bats
 # bashsupport disable=BP5007
 
-setup() {
-  load 'helpers/setup.sh' 'virt-customize'
-}
-
 @test "should print help" {
 
-  LIBGUESTFS_IMAGE="$BUILD_TAG" run ./virt-customize
+  LIBGUESTFSW_IMAGE="$BUILD_TAG" run ./virt-customize
 
   assert_line --partial 'virt-customize(1) man page'
 }
 
 @test "should execute script" {
-  cp_fixture cirros.img disk.img
+  copy_fixture cirros.img disk.img
 
-  LIBGUESTFS_IMAGE="$BUILD_TAG" run ./virt-customize \
+  LIBGUESTFSW_IMAGE="$BUILD_TAG" run ./virt-customize \
     --add disk.img \
     --write /boot/test.txt:content
 
-  cp "${BATS_CWD}/scripts/guestfish" "${BATS_TEST_TMPDIR}/guestfish"
-  chmod +x "${BATS_TEST_TMPDIR}/guestfish"
-  LIBGUESTFS_IMAGE="$BUILD_TAG" run ./guestfish \
+  cp "$BATS_CWD/scripts/guestfish" "$BATS_TEST_TMPDIR"
+  chmod +x "$BATS_TEST_TMPDIR/guestfish"
+  LIBGUESTFSW_IMAGE="$BUILD_TAG" run ./guestfish \
     --ro \
     --add disk.img \
     --inspector \

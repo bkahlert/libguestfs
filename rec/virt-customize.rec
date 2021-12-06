@@ -1,0 +1,15 @@
+#!/usr/bin/env recordr
+
+declare tmp && tmp=$(mktemp "build/rec-XXXXXX") && rm "$tmp" && mkdir -p "$tmp"
+cp scripts/* "$tmp"
+chmod +x "$tmp/"*
+cp "test/fixtures/cir""ros.img" "$tmp/disk.img"
+cd "$tmp"
+
+rec ./virt-customize \
+  --add disk.img \
+  --write /boot/test.txt:content
+
+rec ./copy-out /boot/test.txt
+
+rec cat disk.data/boot/test.txt

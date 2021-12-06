@@ -25,17 +25,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-source <(curl -LfsS https://git.io/logr.sh)
-
-# shellcheck disable=SC2155
-declare -r disk="$(find . -type f -iname "*.img" -not -path "*.data/*" | head -n 1)"
-if [ ! -f "$disk" ]; then
-  echo " $(tput setaf 1)✘$(tput sgr0)" "No image found." >&2
-  echo "  " "Please run ${0##*/} in a directory containing an .img file." >&2
-  exit 1
-fi
-
-declare wrapper_name=dockerpiw
+declare wrapper_name=libguestfsw
 declare -a args=() wrapper_args=()
 while (($#)); do
   case $1 in
@@ -59,13 +49,19 @@ opts+=("-e" "TERM=${TERM-}")
 opts() { eval 'opts+=("$@")'; }
 [ ! -t 0 ] || opts+=("--interactive")
 [ ! -t 1 ] || [ ! -t 2 ] || [ "${TERM-}" = dumb ] || opts+=("--tty")
-[ ! -v DOCKERPIW_ARGS ] || eval opts "$DOCKERPIW_ARGS"
+[ ! -v LIBGUESTFSW_ARGS ] || eval opts "$LIBGUESTFSW_ARGS"
 opts+=("${wrapper_args[@]}")
 opts+=("--rm")
 opts+=("--name" "$wrapper_name--$(head /dev/urandom | LC_ALL=C.UTF-8 tr -dc A-Za-z0-9 2>/dev/null | head -c 3)")
-opts+=("${DOCKERPIW_IMAGE:-lukechilds/dockerpi:${DOCKERPIW_IMAGE_TAG:-vm}}")
+opts+=("${LIBGUESTFSW_IMAGE:-bkahlert/libguestfs:${LIBGUESTFSW_IMAGE_TAG:-latest}}")
 
 docker run \
-  -v "$PWD/${disk}:/sdcard/filesystem.img" \
+  -e DEBUG="${DEBUG-}" \
+  -e TZ="$(date +"%Z")" \
+  -e PUID="$(id -u)" \
+  -e PGID="$(id -g)" \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v "$PWD":"$PWD" \
+  -w "$PWD" \
   "${opts[@]+"${opts[@]}"}" \
   "$@"

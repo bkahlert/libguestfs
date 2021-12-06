@@ -2,39 +2,40 @@
 # bashsupport disable=BP5007
 
 setup() {
-  load 'helpers/setup.sh' 'copy-out'
+  cp "$BATS_CWD/scripts/guestfish" "$BATS_TEST_TMPDIR"
+  chmod +x "$BATS_TEST_TMPDIR/guestfish"
 }
 
-@test "Xshould copy-out / by default" {
-  cp_fixture cirros.img disk.img
+@test "should copy-out / by default" {
+  copy_fixture cirros.img disk.img
 
-  LIBGUESTFS_IMAGE="$BUILD_TAG" run ./copy-out
+  LIBGUESTFSW_IMAGE="$BUILD_TAG" run ./copy-out
 
   assert_file_exist 'disk.data/initrd.img'
-  assert_file_exist 'disk.data/home/cirros/.profile'
+  assert_file_exist 'disk.data/home/cir''ros/.profile'
 }
 
-@test "Xshould copy-out specified path" {
-  cp_fixture cirros.img disk.img
+@test "should copy-out specified path" {
+  copy_fixture cirros.img disk.img
 
-  LIBGUESTFS_IMAGE="$BUILD_TAG" run ./copy-out /home/cirros
+  LIBGUESTFSW_IMAGE="$BUILD_TAG" run ./copy-out /home/cirros
 
   assert_file_not_exist 'disk.data/initrd.img'
-  assert_file_exist 'disk.data/home/cirros/.profile'
+  assert_file_exist 'disk.data/home/cir''ros/.profile'
 }
 
-@test "Xshould copy-out from image in subdir" {
+@test "should copy-out from image in subdir" {
   mkdir foo
-  cp_fixture cirros.img foo/disk.img
+  copy_fixture cirros.img foo/disk.img
 
-  LIBGUESTFS_IMAGE="$BUILD_TAG" run ./copy-out /home/cirros
+  LIBGUESTFSW_IMAGE="$BUILD_TAG" run ./copy-out /home/cirros
 
-  assert_file_exist 'foo/disk.data/home/cirros/.profile'
+  assert_file_exist 'foo/disk.data/home/cir''ros/.profile'
 }
 
-@test "Xshould fail on missing disk" {
+@test "should fail on missing disk" {
 
-  LIBGUESTFS_IMAGE="$BUILD_TAG" run ./copy-out /home/cirros
+  LIBGUESTFSW_IMAGE="$BUILD_TAG" run ./copy-out /home/cirros
 
   assert_line --partial 'No image found.'
   assert_line --partial 'Please run copy-out in a directory containing an .img file.'

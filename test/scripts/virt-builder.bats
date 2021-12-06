@@ -1,13 +1,9 @@
 #!/usr/bin/env bats
 # bashsupport disable=BP5007
 
-setup() {
-  load 'helpers/setup.sh' 'virt-builder'
-}
-
 @test "should print help" {
 
-  LIBGUESTFS_IMAGE="$BUILD_TAG" run ./virt-builder
+  LIBGUESTFSW_IMAGE="$BUILD_TAG" run ./virt-builder
 
   # shellcheck disable=SC1112
   assert_line --partial 'Use ‘--list’ to list available template'
@@ -15,7 +11,7 @@ setup() {
 
 @test "should execute script" {
 
-  LIBGUESTFS_IMAGE="$BUILD_TAG" run ./virt-builder \
+  LIBGUESTFSW_IMAGE="$BUILD_TAG" run ./virt-builder \
     --list \
     --list-format long \
     --no-check-signature

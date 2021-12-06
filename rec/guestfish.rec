@@ -1,0 +1,15 @@
+#!/usr/bin/env recordr
+
+declare tmp && tmp=$(mktemp "build/rec-XXXXXX") && rm "$tmp" && mkdir -p "$tmp"
+cp scripts/* "$tmp"
+chmod +x "$tmp/"*
+cp "test/fixtures/tiny""core.iso" "$tmp/disk.img"
+cd "$tmp"
+
+rec <<GUESTFISH
+./guestfish --ro --add disk.img --mount /dev/sda:/ <<COMMANDS
+ls /boot
+umount-all
+exit
+COMMANDS
+GUESTFISH

@@ -1,0 +1,60 @@
+name: docs
+
+on:
+  push:
+    branches: ['master']
+    tags: ['v*']
+    paths-ignore: ['**.md','**.svg']
+  pull_request:
+    branches: ['master']
+    tags: ['dependencies']
+    paths-ignore: ['**.md','**.svg']
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.ref }}--docs
+  cancel-in-progress: true
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Prepare
+        id: prep
+        run: |
+          echo ::set-output name=recordr-branch::"${{ github.ref_name }}--docs"
+          echo ::set-output name=recordr-build-dir::"build/rec"
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: ● REC terminal sessions
+        if: github.event_name != 'pull_request'
+        id: recordr
+        uses: bkahlert/recordr@v0.2.2
+        with:
+          branch: ${{ steps.prep.outputs.recordr-branch }}
+          build-dir: ${{ steps.prep.outputs.recordr-build-dir }}
+
+      - name: Upload ● REC artifacts
+        uses: actions/upload-artifact@v2
+        if: success() || failure()
+        with:
+          name: rec-artifacts
+          if-no-files-found: error
+          path: ${{ steps.prep.outputs.recordr-build-dir }}
+
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v3
+        if: startsWith(github.ref, 'refs/heads/')
+        with:
+          commit-message: |
+            ${{ github.workflow }}(docs): update ${{ steps.recordr.outputs.file-list }}
+          title: |
+            ${{ github.workflow }}(docs): update ${{ steps.recordr.outputs.file-list }}
+          body: |
+            Updates ${{ steps.recordr.outputs.file-list }}
+            ${{ steps.recordr.outputs.markdown }}
+          labels: recordr,docs,rec
+          branch: ${{ steps.prep.outputs.recordr-branch }}
