@@ -82,7 +82,7 @@ jobs:
           DEFAULT_TAG: ${{ steps.prep.outputs.build_tag }}
 
       - name: Run tests
-        uses: bkahlert/bats-wrapper@v0.1.2
+        uses: bkahlert/bats-wrapper@v0.1.3
         env:
           BATSW_ARGS: --env BUILD_TAG="${{ steps.prep.outputs.build_tag }}"
         with:
