@@ -6,13 +6,12 @@
   LIBGUESTFSW_IMAGE="$BUILD_TAG" expect <<EXPECT
 set timeout 15
 spawn ./guestfish
-expect "help"
+expect "‘quit’ to quit the shell"
 EXPECT
-trace
-  assert_success
+
   assert_line --partial 'Welcome to guestfish'
   # shellcheck disable=SC1112
-  assert_line --partial 'Type: ‘help’ for help on commands'
+  assert_line --partial '‘quit’ to quit the shell'
 }
 
 @test "should execute script if specified" {
