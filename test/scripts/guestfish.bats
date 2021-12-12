@@ -1,17 +1,21 @@
 #!/usr/bin/env bats
 # bashsupport disable=BP5007
 
-@test "Xshould start interactive shell by default" {
-
-  LIBGUESTFSW_IMAGE="$BUILD_TAG" expect <<EXPECT
+# TODO free up space; does not work otherwise on GitHub
+@test "should start interactive shell by default" {
+  skip
+  LIBGUESTFSW_IMAGE="$BUILD_TAG" run /usr/bin/expect -df "$(make_interpretable '#!/usr/bin/expect -d' - <<EXPECT
 set timeout 15
 spawn ./guestfish
-expect "‘quit’ to quit the shell"
+expect "help"
+send "quit"
 EXPECT
+)"
 
+  assert_success
   assert_line --partial 'Welcome to guestfish'
   # shellcheck disable=SC1112
-  assert_line --partial '‘quit’ to quit the shell'
+  assert_line --partial 'Type: ‘help’ for help on commands'
 }
 
 @test "should execute script if specified" {
