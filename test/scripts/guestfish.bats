@@ -1,16 +1,14 @@
 #!/usr/bin/env bats
 # bashsupport disable=BP5007
 
-@test "should start interactive shell by default" {
+@test "Xshould start interactive shell by default" {
 
   LIBGUESTFSW_IMAGE="$BUILD_TAG" expect <<EXPECT
 set timeout 15
 spawn ./guestfish
 expect "help"
-send "quit"
-interact
 EXPECT
-
+trace
   assert_success
   assert_line --partial 'Welcome to guestfish'
   # shellcheck disable=SC1112
