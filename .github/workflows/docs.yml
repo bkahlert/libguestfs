@@ -46,7 +46,7 @@ jobs:
           path: ${{ steps.prep.outputs.recordr-build-dir }}
 
       - name: Create pull request
-        uses: peter-evans/create-pull-request@v3
+        uses: peter-evans/create-pull-request@v4
         if: startsWith(github.ref, 'refs/heads/')
         with:
           commit-message: |
