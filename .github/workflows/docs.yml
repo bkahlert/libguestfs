@@ -38,7 +38,7 @@ jobs:
           build-dir: ${{ steps.prep.outputs.recordr-build-dir }}
 
       - name: Upload ● REC artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: success() || failure()
         with:
           name: rec-artifacts
