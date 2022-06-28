@@ -27,7 +27,7 @@ jobs:
           echo ::set-output name=recordr-build-dir::"build/rec"
 
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: ● REC terminal sessions
         if: github.event_name != 'pull_request'
