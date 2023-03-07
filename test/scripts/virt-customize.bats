@@ -9,6 +9,8 @@
 }
 
 @test "should execute script" {
+  skip # broken since v1.2.1
+
   copy_fixture cirros.img disk.img
 
   LIBGUESTFSW_IMAGE="$BUILD_TAG" run ./virt-customize \

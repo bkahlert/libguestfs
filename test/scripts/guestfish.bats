@@ -19,7 +19,6 @@ EXPECT
 }
 
 @test "should execute script if specified" {
-  skip # broken since v1.2
   copy_fixture tinycore.iso disk.img
 
   LIBGUESTFSW_IMAGE="$BUILD_TAG" run ./guestfish \
