@@ -19,7 +19,7 @@ EXPECT
 }
 
 @test "should execute script if specified" {
-  skip # broken since v1.2.1
+  skip # broken since v2
 
   copy_fixture tinycore.iso disk.img
 

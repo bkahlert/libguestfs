@@ -22,6 +22,11 @@
 
 *none*
 
+## [2.0.0-beta.0] - 2023-03-07
+
+- upgrade to Ubuntu 23.04
+- drop support for linux/riscv64
+
 ## [1.3.0] - 2021-12-06
 
 ### Fixed
@@ -54,7 +59,9 @@
 
 - Docker image containing libguestfs command line tools
 
-[unreleased]: https://github.com/bkahlert/libguestfs/compare/v1.3.0...HEAD
+[unreleased]: https://github.com/bkahlert/libguestfs/compare/v2.0.0-beta.0...HEAD
+
+[1.3.0]: https://github.com/bkahlert/libguestfs/compare/v1.3.0...v2.0.0-beta.0
 
 [1.3.0]: https://github.com/bkahlert/libguestfs/compare/v1.2.1...v1.3.0
 
