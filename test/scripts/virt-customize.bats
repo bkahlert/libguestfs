@@ -12,16 +12,16 @@
   copy_fixture cirros.img disk.img
 
   LIBGUESTFSW_IMAGE="$BUILD_TAG" run ./virt-customize \
-    --add disk.img \
+    --add disk.img format:raw \
     --write /boot/test.txt:content
 
   cp "$BATS_CWD/scripts/guestfish" "$BATS_TEST_TMPDIR"
   chmod +x "$BATS_TEST_TMPDIR/guestfish"
   LIBGUESTFSW_IMAGE="$BUILD_TAG" run ./guestfish \
     --ro \
-    --add disk.img \
+    --add disk.img format:raw \
     --inspector \
-    <<< 'copy-out /boot/test.txt ./'
+    <<<'copy-out /boot/test.txt ./'
 
   assert_file_exist 'test.txt'
   assert_file_contains 'test.txt' 'content'

@@ -73,7 +73,7 @@ set_sshd_config() {
       continue
     fi
     if sed \
-      --expression 's/#?[[:space:]]*'${key}' .*$/'${key}' '${value}'/g' \
+      --expression 's/#?[[:space:]]*'"$key"' .*$/'"$key"' '"$value"'/g' \
       --in-place \
       --regexp-extended \
       /etc/ssh/sshd_config; then
@@ -188,14 +188,13 @@ wait_for_process() {
   local -r -i max_time_wait="${2:-30}"
   local waited_sec=0
   while ! pgrep "$process_name" >/dev/null; do
-    logr task "waiting $((max_time_wait - waited_sec))s for process ${process_name}" >&2
+    logr task "waiting $((max_time_wait - waited_sec))s for process ${process_name}"
     sleep 1
     waited_sec=$((waited_sec + 1))
     [ "$waited_sec" -lt "$max_time_wait" ] || logr fail "$process_name did not start in time"
   done
-  logr success "$process_name is running" >&2
+  logr success "$process_name is running" 2>&1
 }
-
 
 # take ownership of /disk.img
 fix_disk() {
@@ -213,9 +212,8 @@ fix_vmlinuz() {
   usermod -a -G kvm "$user"
 }
 
-
 # Entrypoint for this container that updates system settings
-# in order to reflect the configuration made by environment variables.
+# to reflect the configuration made by environment variables.
 # Arguments:
 #   * - Runs the passed arguments as a command line with dropped permissions.
 #       If no arguments were passed runs as a service.

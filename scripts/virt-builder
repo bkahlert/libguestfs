@@ -6,5 +6,5 @@ if command virt-builder &>/dev/null; then
 elif command libguestfsw &>/dev/null; then
   command libguestfsw virt-builder "$@"
 else
-  curl -LfsS https://git.io/libguestfsw | "$SHELL" -s -- virt-builder "$@"
+  curl -LfsS https://git.io/libguestfsw | bash -s -- virt-builder "$@"
 fi

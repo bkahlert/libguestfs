@@ -1,20 +1,20 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="libguestfs: build and test" type="ShConfigurationType">
-    <option name="defaultInterpreter" value="posix" />
-    <option name="SCRIPT_TEXT" value="curl -LfsS https://git.io/batsw | &quot;$SHELL&quot; -s -- --batsw:-e --batsw:BUILD_TAG=test test" />
-    <option name="INDEPENDENT_SCRIPT_PATH" value="true" />
-    <option name="SCRIPT_PATH" value="$PROJECT_DIR$/../libguestfs/batsw" />
-    <option name="SCRIPT_OPTIONS" value="" />
-    <option name="INDEPENDENT_SCRIPT_WORKING_DIRECTORY" value="true" />
-    <option name="SCRIPT_WORKING_DIRECTORY" value="$ModuleFileDir$" />
-    <option name="INDEPENDENT_INTERPRETER_PATH" value="true" />
-    <option name="INTERPRETER_PATH" value="" />
-    <option name="INTERPRETER_OPTIONS" value="" />
-    <option name="EXECUTE_SCRIPT_FILE" value="false" />
-    <envs>
-      <env name="DOCKER_BAKE" value="--set '*.tags=test'" />
-    </envs>
-    <RunnerSettings bashdbVersion="Automatic" bashPathMapper="Automatic" RunnerId="pro.bashsupport.shDebugRunner" />
-    <method v="2" />
-  </configuration>
+    <configuration default="false" name="libguestfs: build and test" type="ShConfigurationType">
+        <option name="defaultInterpreter" value="posix"/>
+        <option name="SCRIPT_TEXT" value="curl -LfsS https://git.io/batsw | bash; -s -- --batsw:-e --batsw:BUILD_TAG=test test"/>
+        <option name="INDEPENDENT_SCRIPT_PATH" value="true"/>
+        <option name="SCRIPT_PATH" value="$PROJECT_DIR$/../libguestfs/batsw"/>
+        <option name="SCRIPT_OPTIONS" value=""/>
+        <option name="INDEPENDENT_SCRIPT_WORKING_DIRECTORY" value="true"/>
+        <option name="SCRIPT_WORKING_DIRECTORY" value="$ProjectFileDir$"/>
+        <option name="INDEPENDENT_INTERPRETER_PATH" value="true"/>
+        <option name="INTERPRETER_PATH" value=""/>
+        <option name="INTERPRETER_OPTIONS" value=""/>
+        <option name="EXECUTE_SCRIPT_FILE" value="false"/>
+        <envs>
+            <env name="DOCKER_BAKE" value="--set '*.tags=test'"/>
+        </envs>
+        <RunnerSettings bashdbVersion="Automatic" bashPathMapper="Automatic" RunnerId="pro.bashsupport.shDebugRunner"/>
+        <method v="2"/>
+    </configuration>
 </component>

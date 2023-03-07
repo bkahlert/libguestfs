@@ -16,5 +16,5 @@ if command guestfish &>/dev/null; then
 elif command libguestfsw &>/dev/null; then
   command libguestfsw guestfish "$@"
 else
-  curl -LfsS https://git.io/libguestfsw | "$SHELL" -s -- guestfish "$@"
+  curl -LfsS https://git.io/libguestfsw | bash -s -- guestfish "$@"
 fi

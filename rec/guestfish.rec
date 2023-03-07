@@ -7,7 +7,7 @@ cp "test/fixtures/tiny""core.iso" "$tmp/disk.img"
 cd "$tmp"
 
 rec <<GUESTFISH
-./guestfish --ro --add disk.img --mount /dev/sda:/ <<COMMANDS
+./guestfish --ro --add disk.img format:raw --mount /dev/sda:/ <<COMMANDS
 ls /boot
 umount-all
 exit

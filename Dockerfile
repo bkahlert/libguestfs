@@ -47,15 +47,14 @@ ENV DEBUG="$DEBUG" \
     LIBGUESTFS_TRACE="$LIBGUESTFS_TRACE"
 
 # user setup
-RUN groupadd \
-    --gid "$PGID" \
-    "$APP_GROUP" \
- && useradd \
-    --comment "app user" \
-    --uid $PUID \
-    --gid "$APP_GROUP" \
-    --shell /bin/bash \
-    "$APP_USER"
+RUN (\
+  groupadd --gid "$PGID" "$APP_GROUP" 2>/dev/null \
+    || groupmod --new-name "$APP_GROUP" "$(getent group "$PGID" | cut -d: -f1)" \
+  )\
+  && (\
+    useradd --comment "app user" --shell /bin/bash --uid "$PUID" --gid "$APP_GROUP" "$APP_USER" 2>/dev/null \
+    || usermod --comment "app user" --shell /bin/bash --login "$APP_USER" --home "/home/$APP_USER" --move-home "$(id -nu "$PUID")" \
+  )
 
 # finalization
 ENTRYPOINT ["/usr/bin/dumb-init", "--", "/usr/local/sbin/entrypoint.sh"]

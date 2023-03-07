@@ -17,13 +17,13 @@
   copy_fixture tinycore.iso disk.img
 
   image --interactive \
-        --env LIBGUESTFS_DEBUG=1 \
-        --env LIBGUESTFS_TRACE=1 \
-        "$BUILD_TAG" \
-        guestfish \
-        --ro \
-        --add disk.img \
-        --mount /dev/sda:/ \
+    --env LIBGUESTFS_DEBUG=1 \
+    --env LIBGUESTFS_TRACE=1 \
+    "$BUILD_TAG" \
+    guestfish \
+    --ro \
+    --add disk.img format:raw \
+    --mount /dev/sda:/ \
     <<COMMANDS
 copy-out "/boot/core.gz" "./"
 umount-all

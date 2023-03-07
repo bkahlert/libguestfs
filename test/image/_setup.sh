@@ -12,7 +12,7 @@ export IMAGE_PGID="id -g"
 # bashsupport disable=BP2001
 # shellcheck disable=SC2034
 image() {
-  local args=() expected_status=0 filter
+  local args=() expected_status=0 expected_state=exited filter
   while (($#)); do
     case $1 in
       --stdout-only)
@@ -23,6 +23,9 @@ image() {
         ;;
       --code=*)
         expected_status=${1#*=} && shift
+        ;;
+      -d)
+        expected_state=running && args+=("$1") && shift
         ;;
       *)
         args+=("$1") && shift
@@ -36,7 +39,7 @@ image() {
     [ ! "${filter-}" = 1 ] || exec 2>/dev/null
     [ ! "${filter-}" = 2 ] || exec 1>/dev/null
 
-   docker run --name "${BATS_TEST_NAME?must be only called from within a running test}" \
+    docker run --name "${BATS_TEST_NAME?must be only called from within a running test}" \
       ${IMAGE_PUID+-e PUID="$($IMAGE_PUID)"} \
       ${IMAGE_PGID+-e PGID="$($IMAGE_PGID)"} \
       -e TERM="$TERM" \
@@ -47,7 +50,7 @@ image() {
   [ "${status-}" ] || status=0
   batsw_separate_lines lines output
   assert_status "$expected_status"
-  assert_container_status "$BATS_TEST_NAME" exited
+  assert_container_status "$BATS_TEST_NAME" "$expected_state"
 }
 
 # Cleans up an eventually still running container.

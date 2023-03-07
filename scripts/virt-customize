@@ -6,5 +6,5 @@ if command virt-customize &>/dev/null; then
 elif command libguestfsw &>/dev/null; then
   command libguestfsw virt-customize "$@"
 else
-  curl -LfsS https://git.io/libguestfsw | "$SHELL" -s -- virt-customize "$@"
+  curl -LfsS https://git.io/libguestfsw | bash -s -- virt-customize "$@"
 fi
