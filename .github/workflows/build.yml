@@ -75,7 +75,7 @@ jobs:
           echo ::set-output name=test_reports_format::junit
 
       - name: Build test
-        uses: docker/bake-action@v2
+        uses: docker/bake-action@v3
         with:
           targets: image-local
         env:
@@ -99,7 +99,7 @@ jobs:
           path: ${{ steps.prep.outputs.test_reports_dir }}/*.xml
 
       - name: Build
-        uses: docker/bake-action@v2
+        uses: docker/bake-action@v3
         with:
           files: |
             ./docker-bake.hcl
