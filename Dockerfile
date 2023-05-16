@@ -1,4 +1,4 @@
-FROM ubuntu:23.04
+FROM ubuntu:23.10
 
 # build time only options
 ARG LOGR_VERSION=0.6.2
