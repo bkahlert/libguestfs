@@ -147,7 +147,8 @@ curl -LfsS https://git.io/batsw |
 framework [Bats](https://github.com/bats-core/bats-core).
 
 The suite exercises an interactive guestfish session, extracts files from
-disk images through guestfish and the helper scripts, and writes a file with
+disk images through guestfish and the helper scripts, builds and customizes
+an image with virt-builder using a local template, and writes a file with
 virt-customize before reading it back through guestfish. These integration
 tests boot the libguestfs appliance; help and version output alone are not
 used as proof that disk operations work.
