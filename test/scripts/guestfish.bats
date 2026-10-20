@@ -1,9 +1,7 @@
 #!/usr/bin/env bats
 # bashsupport disable=BP5007
 
-# TODO free up space; does not work otherwise on GitHub
 @test "should start interactive shell by default" {
-  skip
   LIBGUESTFSW_IMAGE="$BUILD_TAG" run /usr/bin/expect -df "$(make_interpretable '#!/usr/bin/expect -d' - <<EXPECT
 set timeout 15
 spawn ./guestfish
@@ -19,8 +17,6 @@ EXPECT
 }
 
 @test "should execute script if specified" {
-  skip # broken since v2
-
   copy_fixture tinycore.iso disk.img
 
   LIBGUESTFSW_IMAGE="$BUILD_TAG" run ./guestfish \

@@ -14,8 +14,6 @@
 }
 
 @test "should execute guestfish script" {
-  skip # broken since v2
-
   copy_fixture tinycore.iso disk.img
 
   image --interactive \
