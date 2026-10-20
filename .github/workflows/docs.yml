@@ -7,7 +7,6 @@ on:
     paths-ignore: ['**.md','**.svg']
   pull_request:
     branches: ['master']
-    tags: ['dependencies']
     paths-ignore: ['**.md','**.svg']
   workflow_dispatch:
 
@@ -18,16 +17,23 @@ concurrency:
 jobs:
   docs:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
 
     steps:
       - name: Prepare
         id: prep
         run: |
-          echo ::set-output name=recordr-branch::"${{ github.ref_name }}--docs"
-          echo ::set-output name=recordr-build-dir::"build/rec"
+          {
+            echo "recordr-branch=${REF_NAME}--docs"
+            echo "recordr-build-dir=build/rec"
+          } >> "$GITHUB_OUTPUT"
+        env:
+          REF_NAME: ${{ github.ref_name }}
 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
 
       - name: ● REC terminal sessions
         if: github.event_name != 'pull_request'
@@ -38,15 +44,15 @@ jobs:
           build-dir: ${{ steps.prep.outputs.recordr-build-dir }}
 
       - name: Upload ● REC artifacts
-        uses: actions/upload-artifact@v3
-        if: success() || failure()
+        uses: actions/upload-artifact@v7
+        if: github.event_name != 'pull_request' && (success() || failure())
         with:
           name: rec-artifacts
           if-no-files-found: error
           path: ${{ steps.prep.outputs.recordr-build-dir }}
 
       - name: Create pull request
-        uses: peter-evans/create-pull-request@v5.0.0
+        uses: peter-evans/create-pull-request@v8.1.1
         if: startsWith(github.ref, 'refs/heads/')
         with:
           commit-message: |

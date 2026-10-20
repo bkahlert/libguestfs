@@ -8,9 +8,13 @@ on:
 jobs:
   report:
     runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      checks: write
+      contents: read
 
     steps:
-      - uses: dorny/test-reporter@v1
+      - uses: dorny/test-reporter@v3
         with:
           artifact: test-reports
           name: Bats tests

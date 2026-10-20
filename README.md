@@ -4,6 +4,11 @@
 
 **Containerized libguestfs including virt-customize, guestfish, etc.**
 
+The image uses Ubuntu 26.04 LTS and its packaged libguestfs, guestfs-tools,
+QEMU, and Linux kernel. All platforms configured in
+[`docker-bake.hcl`](docker-bake.hcl) remain supported.
+Ubuntu 26.10 is not used because it no longer packages libguestfs for ARMv7.
+
 * Runs as non-root user
 * Multi-platform image
 * Helper scripts
@@ -104,7 +109,7 @@ configuration on each container start.
 - `APP_USER` Name of the main user (default: `libguestfs`)
 - `APP_GROUP` Name of the main user's group (default: `libguestfs`)
 - `DEBUG` Whether to log debug information (default: `0`)
-- `TZ` Timezone the container runs in (default: `UTC`)
+- `TZ` IANA timezone the container runs in, for example `Europe/Berlin` (default: `UTC`)
 - `LANG` Language/locale to use (default: `C.UTF-8`)
 - `PUID` User ID of the `libguestfs` user (default: `1000`)
 - `PGID` Group ID of the `libguestfs` group (default: `1000`)

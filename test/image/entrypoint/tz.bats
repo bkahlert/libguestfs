@@ -6,6 +6,6 @@
 }
 
 @test "should change timezone to specified timezone" {
-  image -e "TZ=CEST" "$BUILD_TAG" bash -c 'date +"%Z"'
-  assert_line --partial CEST
+  image -e "TZ=Europe/Berlin" "$BUILD_TAG" date --date=@0 +"%Z"
+  assert_line CET
 }

@@ -1,4 +1,4 @@
-FROM ubuntu:23.04
+FROM ubuntu:26.04
 
 # build time only options
 ARG LOGR_VERSION=0.6.2
@@ -24,10 +24,10 @@ RUN apt-get update \
     linux-image-generic \
     qemu-utils \
     tzdata \
- && rm -rf /tmp/* /var/lib/apt/list/*
+ && rm -rf /tmp/* /var/lib/apt/lists/*
 
 # app setup
-COPY --from=crazymax/yasu:1.17.0 / /
+COPY --from=crazymax/yasu:1.20.1 / /
 COPY rootfs /
 RUN chmod +x \
     /usr/local/sbin/entrypoint.sh \
@@ -35,7 +35,12 @@ RUN chmod +x \
  && sed -Ei -e "s/([[:space:]]app_user=)[^[:space:]]*/\1$APP_USER/" \
             -e "s/([[:space:]]app_group=)[^[:space:]]*/\1$APP_GROUP/" \
              /usr/local/sbin/entrypoint.sh \
- && curl -LfsSo /usr/local/bin/logr.sh https://github.com/bkahlert/logr/releases/download/v${LOGR_VERSION}/logr.sh
+ && curl -LfsSo /usr/local/bin/logr.sh https://github.com/bkahlert/logr/releases/download/v${LOGR_VERSION}/logr.sh \
+ # Bash 5.3 requires % jobspecs and reaping the spinner before restarting it.
+ && sed -i \
+      -e "s/jobs -pr 'spinner _spin'/jobs -pr '%spinner _spin'/g" \
+      -e "s/jobs -pr '%spinner _spin' | xargs -r kill/kill '%spinner _spin'; wait '%spinner _spin' || [ \"\$?\" -eq 143 ]/" \
+      /usr/local/bin/logr.sh
 
 # env setup
 ENV DEBUG="$DEBUG" \
