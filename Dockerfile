@@ -1,7 +1,7 @@
 FROM ubuntu:26.04
 
 # build time only options
-ARG LOGR_VERSION=0.6.2
+ARG LOGR_VERSION=0.6.3
 ARG APP_USER=libguestfs
 ARG APP_GROUP=$APP_USER
 
@@ -35,12 +35,7 @@ RUN chmod +x \
  && sed -Ei -e "s/([[:space:]]app_user=)[^[:space:]]*/\1$APP_USER/" \
             -e "s/([[:space:]]app_group=)[^[:space:]]*/\1$APP_GROUP/" \
              /usr/local/sbin/entrypoint.sh \
- && curl -LfsSo /usr/local/bin/logr.sh https://github.com/bkahlert/logr/releases/download/v${LOGR_VERSION}/logr.sh \
- # Bash 5.3 requires % jobspecs and reaping the spinner before restarting it.
- && sed -i \
-      -e "s/jobs -pr 'spinner _spin'/jobs -pr '%spinner _spin'/g" \
-      -e "s/jobs -pr '%spinner _spin' | xargs -r kill/kill '%spinner _spin'; wait '%spinner _spin' || [ \"\$?\" -eq 143 ]/" \
-      /usr/local/bin/logr.sh
+ && curl -LfsSo /usr/local/bin/logr.sh https://github.com/bkahlert/logr/releases/download/v${LOGR_VERSION}/logr.sh
 
 # env setup
 ENV DEBUG="$DEBUG" \
