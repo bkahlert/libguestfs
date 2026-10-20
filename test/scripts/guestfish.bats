@@ -2,7 +2,7 @@
 # bashsupport disable=BP5007
 
 @test "should start interactive shell by default" {
-  LIBGUESTFSW_IMAGE="$BUILD_TAG" run /usr/bin/expect -f "$(make_interpretable '#!/usr/bin/expect' - <<'EXPECT'
+  TERM=xterm LIBGUESTFSW_IMAGE="$BUILD_TAG" run /usr/bin/expect -f "$(make_interpretable '#!/usr/bin/expect' - <<'EXPECT'
 set timeout 60
 spawn ./guestfish
 expect {
