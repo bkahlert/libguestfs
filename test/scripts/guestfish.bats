@@ -2,11 +2,21 @@
 # bashsupport disable=BP5007
 
 @test "should start interactive shell by default" {
-  LIBGUESTFSW_IMAGE="$BUILD_TAG" run /usr/bin/expect -df "$(make_interpretable '#!/usr/bin/expect -d' - <<EXPECT
-set timeout 15
+  LIBGUESTFSW_IMAGE="$BUILD_TAG" run /usr/bin/expect -f "$(make_interpretable '#!/usr/bin/expect' - <<'EXPECT'
+set timeout 60
 spawn ./guestfish
-expect "help"
-send "quit"
+expect {
+  "><fs> " {}
+  timeout { exit 1 }
+  eof { exit 1 }
+}
+send "quit\r"
+expect {
+  eof {}
+  timeout { exit 1 }
+}
+set result [wait]
+exit [lindex $result 3]
 EXPECT
 )"
 
@@ -21,7 +31,8 @@ EXPECT
 
   LIBGUESTFSW_IMAGE="$BUILD_TAG" run ./guestfish \
     --ro \
-    --add disk.img format:raw \
+    --format=raw \
+    --add disk.img \
     --mount /dev/sda:/ \
     <<COMMANDS
 copy-out "/boot/core.gz" "./"
@@ -29,6 +40,7 @@ umount-all
 exit
 COMMANDS
 
+  assert_success
   assert_file_exist 'core.gz'
   assert_file_owner_group 'core.gz' tester tester
   assert_file_size_equals 'core.gz' 10692675

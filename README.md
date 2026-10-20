@@ -146,6 +146,12 @@ curl -LfsS https://git.io/batsw |
 [Bats Wrapper](https://github.com/bkahlert/bats-wrapper) is a self-contained wrapper to run tests based on the Bash testing
 framework [Bats](https://github.com/bats-core/bats-core).
 
+The suite exercises an interactive guestfish session, extracts files from
+disk images through guestfish and the helper scripts, and writes a file with
+virt-customize before reading it back through guestfish. These integration
+tests boot the libguestfs appliance; help and version output alone are not
+used as proof that disk operations work.
+
 > 💡 To accelerate testing, the Bats Wrapper checks if any test is prefixed with a capital X and if so, only runs those tests.
 
 ## Troubleshooting

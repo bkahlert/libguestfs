@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# Purpose: Runs guestfish locally or in the libguestfs container.
+# Usage: guestfish [OPTIONS] [COMMAND [ARG...]]
+#
 
 # If a command list is passed via STDIN (see https://libguestfs.org/guestfish.1.html#from-shell-scripts):
 # - redirect it to a file
@@ -16,5 +19,7 @@ if command guestfish &>/dev/null; then
 elif command libguestfsw &>/dev/null; then
   command libguestfsw guestfish "$@"
 else
-  curl -LfsS https://git.io/libguestfsw | bash -s -- guestfish "$@"
+  declare wrapper_source
+  wrapper_source=$(curl -LfsS https://git.io/libguestfsw) || exit "$?"
+  bash -c "$wrapper_source" -- guestfish "$@"
 fi

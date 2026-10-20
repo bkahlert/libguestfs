@@ -22,7 +22,8 @@
     "$BUILD_TAG" \
     guestfish \
     --ro \
-    --add disk.img format:raw \
+    --format=raw \
+    --add disk.img \
     --mount /dev/sda:/ \
     <<COMMANDS
 copy-out "/boot/core.gz" "./"
