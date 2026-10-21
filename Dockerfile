@@ -1,7 +1,7 @@
 FROM ubuntu:26.04
 
 # build time only options
-ARG LOGR_VERSION=0.6.4
+ARG LOGR_VERSION=0.6.5
 ARG APP_USER=libguestfs
 ARG APP_GROUP=$APP_USER
 

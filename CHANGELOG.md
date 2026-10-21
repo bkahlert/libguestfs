@@ -8,7 +8,7 @@
 
 ### Changed
 
-- Upgrade logr to 0.6.4 and the documentation recorder to 0.2.3.
+*none*
 
 ### Deprecated
 
@@ -21,6 +21,12 @@
 ### Fixed
 
 *none*
+
+## [2.0.1] - 2026-10-21
+
+### Changed
+
+- Upgrade logr to 0.6.5 and the documentation recorder to 0.2.3.
 
 ## [2.0.0] - 2026-10-21
 
@@ -86,7 +92,9 @@
 
 - Docker image containing libguestfs command line tools
 
-[unreleased]: https://github.com/bkahlert/libguestfs/compare/v2.0.0...HEAD
+[unreleased]: https://github.com/bkahlert/libguestfs/compare/v2.0.1...HEAD
+
+[2.0.1]: https://github.com/bkahlert/libguestfs/compare/v2.0.0...v2.0.1
 
 [2.0.0]: https://github.com/bkahlert/libguestfs/compare/v2.0.0-beta.0...v2.0.0
 
