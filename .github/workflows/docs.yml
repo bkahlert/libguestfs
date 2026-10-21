@@ -38,7 +38,7 @@ jobs:
       - name: ● REC terminal sessions
         if: github.event_name != 'pull_request'
         id: recordr
-        uses: bkahlert/recordr@v0.2.2
+        uses: bkahlert/recordr@v0.2.4
         with:
           branch: ${{ steps.prep.outputs.recordr-branch }}
           build-dir: ${{ steps.prep.outputs.recordr-build-dir }}
