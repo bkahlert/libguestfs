@@ -8,7 +8,7 @@
 
 ### Changed
 
-*none*
+- Upgrade logr to 0.6.4 and the documentation recorder to 0.2.3.
 
 ### Deprecated
 
