@@ -4,6 +4,11 @@
 
 **Containerized libguestfs including virt-customize, guestfish, etc.**
 
+The image uses Ubuntu 26.04 LTS and its packaged libguestfs, guestfs-tools,
+QEMU, and Linux kernel. All platforms configured in
+[`docker-bake.hcl`](docker-bake.hcl) remain supported.
+Ubuntu 26.10 is not used because it no longer packages libguestfs for ARMv7.
+
 * Runs as non-root user
 * Multi-platform image
 * Helper scripts
@@ -42,7 +47,6 @@ Following platforms for this image are available:
 - linux/arm/v7
 - linux/arm64/v8
 - linux/ppc64le
-- linux/riscv64
 - linux/s390x
 
 ## Usage
@@ -104,7 +108,7 @@ configuration on each container start.
 - `APP_USER` Name of the main user (default: `libguestfs`)
 - `APP_GROUP` Name of the main user's group (default: `libguestfs`)
 - `DEBUG` Whether to log debug information (default: `0`)
-- `TZ` Timezone the container runs in (default: `UTC`)
+- `TZ` IANA timezone the container runs in, for example `Europe/Berlin` (default: `UTC`)
 - `LANG` Language/locale to use (default: `C.UTF-8`)
 - `PUID` User ID of the `libguestfs` user (default: `1000`)
 - `PGID` Group ID of the `libguestfs` group (default: `1000`)
@@ -140,6 +144,13 @@ curl -LfsS https://git.io/batsw |
 
 [Bats Wrapper](https://github.com/bkahlert/bats-wrapper) is a self-contained wrapper to run tests based on the Bash testing
 framework [Bats](https://github.com/bats-core/bats-core).
+
+The suite exercises an interactive guestfish session, extracts files from
+disk images through guestfish and the helper scripts, builds and customizes
+an image with virt-builder using a local template, and writes a file with
+virt-customize before reading it back through guestfish. These integration
+tests boot the libguestfs appliance; help and version output alone are not
+used as proof that disk operations work.
 
 > 💡 To accelerate testing, the Bats Wrapper checks if any test is prefixed with a capital X and if so, only runs those tests.
 

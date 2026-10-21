@@ -14,8 +14,6 @@
 }
 
 @test "should execute guestfish script" {
-  skip # broken since v2
-
   copy_fixture tinycore.iso disk.img
 
   image --interactive \
@@ -24,7 +22,8 @@
     "$BUILD_TAG" \
     guestfish \
     --ro \
-    --add disk.img format:raw \
+    --format=raw \
+    --add disk.img \
     --mount /dev/sda:/ \
     <<COMMANDS
 copy-out "/boot/core.gz" "./"

@@ -8,23 +8,26 @@
   assert_line --partial 'virt-customize(1) man page'
 }
 
-@test "should execute script" {
-  skip # broken since v2
-
+@test "should write to a guest filesystem and read it back" {
   copy_fixture cirros.img disk.img
 
   LIBGUESTFSW_IMAGE="$BUILD_TAG" run ./virt-customize \
-    --add disk.img format:raw \
+    --format qcow2 \
+    --add disk.img \
     --write /boot/test.txt:content
+
+  assert_success
 
   cp "$BATS_CWD/scripts/guestfish" "$BATS_TEST_TMPDIR"
   chmod +x "$BATS_TEST_TMPDIR/guestfish"
   LIBGUESTFSW_IMAGE="$BUILD_TAG" run ./guestfish \
     --ro \
-    --add disk.img format:raw \
+    --format=qcow2 \
+    --add disk.img \
     --inspector \
     <<<'copy-out /boot/test.txt ./'
 
+  assert_success
   assert_file_exist 'test.txt'
   assert_file_contains 'test.txt' 'content'
 }

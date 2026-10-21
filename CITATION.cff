@@ -5,6 +5,6 @@ authors:
     family-names: "Kahlert"
     orcid: "https://orcid.org/0000-0003-1705-4067"
 title: "Libguestfs - Containerized libguestfs including virt-customize, guestfish, etc."
-version: 2.0.0-beta.0
-date-released: 2023-03-07
+version: 2.0.0
+date-released: 2026-10-21
 url: "https://github.com/bkahlert/libguestfs"
