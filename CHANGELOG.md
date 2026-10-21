@@ -26,7 +26,7 @@
 
 ### Changed
 
-- Upgrade logr to 0.6.5 and the documentation recorder to 0.2.3.
+- Upgrade logr to 0.6.5 and the documentation recorder to 0.2.4.
 
 ## [2.0.0] - 2026-10-21
 
