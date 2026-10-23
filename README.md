@@ -13,15 +13,15 @@ Ubuntu 26.10 is not used because it no longer packages libguestfs for ARMv7.
 * Multi-platform image
 * Helper scripts
     * [`guestfish` *Manipulate a virtual machine / image using the guest filesystem shell*
-      ![recorded terminal session demonstrating guestfish](docs/guestfish.svg "guestfish")](../../raw/master/docs/guestfish.svg)
+      ![recorded terminal session demonstrating guestfish](https://bkahlert.github.io/libguestfs/guestfish.svg "guestfish")](https://bkahlert.github.io/libguestfs/guestfish.svg)
     * [`virt-builder` *Build virtual machine images quickly*  
-      ![recorded terminal session demonstrating virt-builder](docs/virt-builder.svg "virt-builder")](../../raw/master/docs/virt-builder.svg)
+      ![recorded terminal session demonstrating virt-builder](https://bkahlert.github.io/libguestfs/virt-builder.svg "virt-builder")](https://bkahlert.github.io/libguestfs/virt-builder.svg)
     * [`virt-customize` *Customize a virtual machine / image*  
-      ![recorded terminal session demonstrating virt-customize](docs/virt-customize.svg "virt-customize")](../../raw/master/docs/virt-customize.svg)
+      ![recorded terminal session demonstrating virt-customize](https://bkahlert.github.io/libguestfs/virt-customize.svg "virt-customize")](https://bkahlert.github.io/libguestfs/virt-customize.svg)
     * [`pi` *Boot a virtual machine / image using a dockerized ARM emulator that emulates a Raspberry Pi*  
-      ![recorded terminal session demonstrating pi](docs/pi.svg "pi")](../../raw/master/docs/pi.svg)
+      ![recorded terminal session demonstrating pi](https://bkahlert.github.io/libguestfs/pi.svg "pi")](https://bkahlert.github.io/libguestfs/pi.svg)
     * [`copy-out` *Copy files out of a virtual machine / image*  
-      ![recorded terminal session demonstrating copy-out](docs/copy-out.svg "copy-out")](../../raw/master/docs/copy-out.svg)
+      ![recorded terminal session demonstrating copy-out](https://bkahlert.github.io/libguestfs/copy-out.svg "copy-out")](https://bkahlert.github.io/libguestfs/copy-out.svg)
 
 ## Build locally
 

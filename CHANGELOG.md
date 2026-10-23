@@ -22,6 +22,21 @@
 
 *none*
 
+## [2.0.2] - 2026-10-23
+
+### Changed
+
+- Publish the latest terminal recordings through GitHub Pages with stable README links.
+- Upgrade the documentation recorder to 0.2.6 and Bats Wrapper to 0.2.2,
+  with matching action and container image versions.
+
+### Fixed
+
+- Give the non-root application user access to a mounted Docker socket without
+  changing its ownership, permissions, or the configured UID and primary GID.
+- Preserve supplementary groups, including KVM access, and support distinct
+  application user and group names when updating the primary GID.
+
 ## [2.0.1] - 2026-10-21
 
 ### Changed
@@ -92,7 +107,9 @@
 
 - Docker image containing libguestfs command line tools
 
-[unreleased]: https://github.com/bkahlert/libguestfs/compare/v2.0.1...HEAD
+[unreleased]: https://github.com/bkahlert/libguestfs/compare/v2.0.2...HEAD
+
+[2.0.2]: https://github.com/bkahlert/libguestfs/compare/v2.0.1...v2.0.2
 
 [2.0.1]: https://github.com/bkahlert/libguestfs/compare/v2.0.0...v2.0.1
 
